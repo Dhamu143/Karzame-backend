@@ -1,23 +1,60 @@
+const { default: axios } = require('axios')
 const Vehicle = require('../models/Vehicle')
+const { getToken } = require('../services/gpsTokenManager')
+const { registerVehicle } = require('../services/iopgpsService')
 
 exports.createVehicle = async (req, res) => {
+	console.log('Start')
 	try {
-		const vehicle = new Vehicle(req.body)
+		const vehicleData = req.body
+
+		console.log('Vehicle Data:', vehicleData)
+
+		const existingVehicle = await Vehicle.findOne({
+			imei: vehicleData.imei,
+		})
+
+		if (existingVehicle) {
+			return res.status(400).json({
+				success: false,
+				message: 'This GPS device is already registered',
+			})
+		}
+
+		const gpsResponse = await registerVehicle(vehicleData)
+
+		console.log('GPS RESPONSE:', gpsResponse)
+
+		if (!gpsResponse || gpsResponse.code !== 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'GPS registration failed',
+				gpsResponse: gpsResponse,
+			})
+		}
+
+		vehicleData.gpsConnected = true
+		vehicleData.deviceName = vehicleData.vehicleNickname
+
+		const vehicle = new Vehicle(vehicleData)
 		const savedVehicle = await vehicle.save()
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
-			message: 'Vehicle created successfully',
+			message: 'Vehicle registered successfully',
 			data: savedVehicle,
+			gpsResponse: gpsResponse,
 		})
 	} catch (error) {
+		console.log('CREATE VEHICLE ERROR:', error)
+
 		res.status(500).json({
 			success: false,
 			message: error.message,
-			data: null,
 		})
 	}
 }
+
 exports.getVehicles = async (req, res) => {
 	try {
 		const page = parseInt(req.query.page) || 1
@@ -63,7 +100,6 @@ exports.getVehicles = async (req, res) => {
 		})
 	}
 }
-// GET VEHICLE BY ID
 exports.getVehicleById = async (req, res) => {
 	try {
 		const vehicle = await Vehicle.findById(req.params.id)
@@ -138,7 +174,6 @@ exports.getVehiclesByUser = async (req, res) => {
 	}
 }
 
-// UPDATE VEHICLE
 exports.updateVehicle = async (req, res) => {
 	try {
 		const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, {
@@ -190,6 +225,73 @@ exports.deleteVehicle = async (req, res) => {
 			success: false,
 			message: error.message,
 			data: null,
+		})
+	}
+}
+
+exports.getVehicleLocation = async (req, res) => {
+	try {
+		const { imei } = req.params
+
+		if (!imei) {
+			return res.status(400).json({
+				success: false,
+				message: 'IMEI is required',
+			})
+		}
+
+		const token = getToken()
+
+		const response = await axios.get(`https://open.iopgps.com/api/device/location?imei=${imei}`, {
+			headers: {
+				accessToken: token,
+				'Content-Type': 'application/json',
+			},
+		})
+
+		const data = response?.data
+
+		if (!data || data.code !== 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Failed to fetch location',
+				data: data,
+			})
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: 'Location fetched successfully',
+			data: {
+				latitude: data.lat,
+				longitude: data.lng,
+				gpsTime: data.gpsTime,
+				address: data.address,
+			},
+		})
+	} catch (error) {
+		console.log('GET LOCATION ERROR:', error.message)
+
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		})
+	}
+}
+
+exports.testApi = async (req, res) => {
+	try {
+		console.log('TEST API BODY:', req.body)
+
+		return res.status(200).json({
+			success: true,
+			message: 'Success',
+			data: req.body,
+		})
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: error.message,
 		})
 	}
 }

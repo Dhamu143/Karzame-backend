@@ -91,6 +91,22 @@ const vehicleSchema = new mongoose.Schema(
 			default: 100,
 		},
 
+		imei: {
+			type: String,
+			required: true,
+			unique: true,
+			trim: true,
+		},
+
+		gpsConnected: {
+			type: Boolean,
+			default: false,
+		},
+
+		deviceName: {
+			type: String,
+		},
+
 		location: {
 			address: {
 				type: String,
