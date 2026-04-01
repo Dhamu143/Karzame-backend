@@ -302,13 +302,24 @@ exports.testApi = async (req, res) => {
   try {
     console.log("TEST API BODY:", JSON.parse(req.body.body));
     const payload = JSON.parse(req.body.body);
-    const vehicle = await Vehicle.findOne(payload.imei);
-    if (vehicle) {
-      if (payload.alarmCode == "REMOVE") {
-        vehicle.stolen = true;
-        await vehicle.save();
+    for (let index = 0; index < payload.length; index++) {
+      const element = payload[index];
+      const vehicle = await Vehicle.findOne(element.imei).lean();
+      if (vehicle) {
+        if (payload.alarmCode == "REMOVE") {
+          // vehicle.stolen = true;
+          // await vehicle.save();
+          const vehicle = await Vehicle.findByIdAndUpdate(
+            vehicle._id,
+            { stolen: true },
+            {
+              new: true,
+              runValidators: true,
+            },
+          );
+        }
+        await karzame({ ...vehicle, ...element });
       }
-      await karzame({ ...vehicle, ...payload });
     }
 
     // await karzame(vehicle);
