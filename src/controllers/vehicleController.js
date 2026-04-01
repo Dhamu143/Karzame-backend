@@ -305,7 +305,7 @@ exports.testApi = async (req, res) => {
     const vehicle = await Vehicle.findOne(payload.imei);
     if (payload.alarmCode == "REMOVE") vehicle.stolen = true;
     const resultData = await vehicle.save();
-    await karzame({ ...payload, ...resultData.toJSON() });
+    await karzame({ ...payload, ...resultData });
     // console.log(vehicle.userId);
     return res.status(200).json({
       success: true,
