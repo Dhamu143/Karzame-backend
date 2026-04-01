@@ -304,7 +304,8 @@ exports.testApi = async (req, res) => {
     const payload = JSON.parse(req.body.body);
     for (let index = 0; index < payload.length; index++) {
       const element = payload[index];
-      const vehicle = await Vehicle.findOne(element.imei).lean();
+      const vehicle = await Vehicle.findOne({ imei: element.imei }).lean();
+      console.log(vehicle);
       if (vehicle) {
         if (payload.alarmCode == "REMOVE") {
           // vehicle.stolen = true;
@@ -318,6 +319,7 @@ exports.testApi = async (req, res) => {
             },
           );
         }
+        console.log({ ...vehicle, ...element });
         await karzame({ ...vehicle, ...element });
       }
     }
