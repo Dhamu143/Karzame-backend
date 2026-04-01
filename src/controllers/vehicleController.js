@@ -303,9 +303,15 @@ exports.testApi = async (req, res) => {
     console.log("TEST API BODY:", JSON.parse(req.body.body));
     const payload = JSON.parse(req.body.body);
     const vehicle = await Vehicle.findOne(payload.imei);
-    if (payload.alarmCode == "REMOVE") vehicle.stolen = true;
-    const resultData = await vehicle.save();
-    await karzame({ ...payload, ...resultData });
+    if (vehicle) {
+      if (payload.alarmCode == "REMOVE") {
+        vehicle.stolen = true;
+        await vehicle.save();
+      }
+      await karzame({ ...vehicle, ...payload });
+    }
+
+    // await karzame(vehicle);
     // console.log(vehicle.userId);
     return res.status(200).json({
       success: true,
