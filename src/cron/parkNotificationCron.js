@@ -6,6 +6,8 @@ const karzame = require("../services/karzame");
 
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
+    const vehicles = await Vehicle.find({ });
+    console.log(vehicles)
   await checkAutoPark();
   await noLongerParked();
 });
@@ -17,7 +19,7 @@ const checkAutoPark = async () => {
       speed: 0,
       prktime: { $ne: null },
     });
-    console.log("🚘 Vehicles Found:", vehicles.length);
+    console.log("🚘 Vehicles Found: checkAutoPark", vehicles.length);
 
     for (const vehicle of vehicles) {
       const diffMinutes = moment().diff(moment(vehicle.prktime), "minutes");
@@ -64,7 +66,7 @@ const noLongerParked = async () => {
       speed: { $gte: 1 },
       vehicleStartTime: { $ne: null },
     });
-    console.log("🚘 Vehicles Found:", vehicles.length);
+    console.log("🚘 Vehicles Found: noLongerParked", vehicles.length);
     for (const vehicle of vehicles) {
       const diffMinutes = moment().diff(
         moment(vehicle.vehicleStartTime),

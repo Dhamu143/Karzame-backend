@@ -8,4 +8,4 @@ router.post('/geofence', createGeoFence);
 router.get('/geofence/:imei', getGeoFences);
 router.post('/auto-secure-all', enableAutoParkAndGeofence);
 router.delete('/delete', deleteAllFences);
-module.exports = router;
+module.exports = router;    
