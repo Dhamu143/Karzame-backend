@@ -1,6 +1,8 @@
 const axios = require('axios');
 const GeoFence = require('../models/GeoFence');
 const { getToken } = require("../services/gpsTokenManager");
+const Vehicle = require('../models/Vehicle');
+const { getVehicleLocation } = require('../controllers/vehicleController');
 
 exports.createGeoFence = async (req, res) => {
   console.log('🔵 createGeoFence API HIT');
@@ -24,37 +26,37 @@ exports.createGeoFence = async (req, res) => {
     const existingFences = await GeoFence.find({ imei });
     console.log('🔍 Existing Fences Count:', existingFences.length);
 
-   for (const fence of existingFences) {
-  if (!fence.fenceId) continue;
+    for (const fence of existingFences) {
+      if (!fence.fenceId) continue;
 
-  try {
-    console.log('🗑️ Deleting fence:', fence.fenceId);
+      try {
+        console.log('🗑️ Deleting fence:', fence.fenceId);
 
-    const deleteRes = await axios.delete(
-      `https://open.iopgps.com/api/fence/del/${fence.fenceId}`,
-      {
-        params: { imei },
-        headers: {
-          accessToken: token,
-        },
+        const deleteRes = await axios.delete(
+          `https://open.iopgps.com/api/fence/del/${fence.fenceId}`,
+          {
+            params: { imei },
+            headers: {
+              accessToken: token,
+            },
+          }
+        );
+
+        console.log('📥 Delete Response:', deleteRes.data);
+
+      } catch (err) {
+        const status = err.response?.status;
+
+        if (status === 404) {
+          console.log(`⚠️ Fence ${fence.fenceId} already deleted`);
+        } else {
+          console.log(
+            `❌ Failed deleting ${fence.fenceId}:`,
+            err.response?.data || err.message
+          );
+        }
       }
-    );
-
-    console.log('📥 Delete Response:', deleteRes.data);
-
-  } catch (err) {
-    const status = err.response?.status;
-
-    if (status === 404) {
-      console.log(`⚠️ Fence ${fence.fenceId} already deleted`);
-    } else {
-      console.log(
-        `❌ Failed deleting ${fence.fenceId}:`,
-        err.response?.data || err.message
-      );
     }
-  }
-}
 
     if (existingFences.length > 0) {
       await GeoFence.deleteMany({ imei });
@@ -164,3 +166,49 @@ exports.getGeoFences = async (req, res) => {
 };
 
 
+// Inside controllers/geoFenceController.js
+
+exports.enableAutoParkAndGeofence = async (req, res) => {
+  try {
+    const { userId, enable } = req.body;
+    console.log('🚀 Auto Secure DB Update API HIT');
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId required' });
+    }
+
+    // ✅ Just update the autoPark flag in the database
+    await Vehicle.updateMany(
+      { userId },
+      { $set: { autoPark: enable } }
+    );
+
+    console.log(`⚙️ autoPark set to ${enable} for all vehicles belonging to ${userId}`);
+
+    // Note: If 'enable' is false, you might want to delete existing geofences right here.
+
+    return res.json({
+      success: true,
+      message: `AutoPark flag ${enable ? 'enabled' : 'disabled'} in database`,
+    });
+
+  } catch (error) {
+    console.log('🔥 ERROR:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteAllFences = async (req, res) => {
+  try {
+    await GeoFence.deleteMany({});
+    console.log("🗑️ All fences deleted");
+
+    res.json({
+      success: true,
+      message: "All geofences deleted"
+    });
+  } catch (err) {
+    console.log("❌ Error:", err.message);
+    res.status(500).json({ success: false });
+  }
+};

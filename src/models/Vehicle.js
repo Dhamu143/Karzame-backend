@@ -51,12 +51,12 @@ const vehicleSchema = new mongoose.Schema(
 			trim: true,
 		},
 
-		imei: {
-			type: String,
-			required: true,
-			unique: true,
-			trim: true,
-		},
+		// imei: {
+		// 	type: String,
+		// 	required: true,
+		// 	unique: true,
+		// 	trim: true,
+		// },
 
 		confirm: {
 			type: Boolean,
@@ -124,6 +124,22 @@ const vehicleSchema = new mongoose.Schema(
 		lastUpdated: {
 			type: Date,
 			default: Date.now,
+		},
+		prkkey: {
+			type: Boolean,
+			default: false,
+		},
+		prktime: {
+			type: Date,
+			default: null,
+		},
+		speed: {
+			type: Number,
+			default: 0,
+		},
+		autoPark: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{ timestamps: true },
