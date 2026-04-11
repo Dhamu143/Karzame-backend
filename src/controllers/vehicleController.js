@@ -340,18 +340,17 @@ exports.getVehicleLocation = async (req, res) => {
 //   }
 // };
 
-
-
 // Don't forget to import your new model at the top of the file!
-// const ParkVehicle = require('../models/ParkVehicle'); 
+// const ParkVehicle = require('../models/ParkVehicle');
 
 exports.testApi = async (req, res) => {
   try {
     console.log("🚀 TEST API HIT");
 
-    const payload = typeof req.body.body === "string"
-      ? JSON.parse(req.body.body)
-      : req.body.body;
+    const payload =
+      typeof req.body.body === "string"
+        ? JSON.parse(req.body.body)
+        : req.body.body;
 
     for (const element of payload) {
       const vehicle = await Vehicle.findOne({ imei: element.imei });
@@ -363,7 +362,9 @@ exports.testApi = async (req, res) => {
 
       const speed = Number(element.speed || 0);
 
-      console.log(`📡 IMEI: ${element.imei} | Speed: ${speed} | Alarm: ${element.alarmCode}`);
+      console.log(
+        `📡 IMEI: ${element.imei} | Speed: ${speed} | Alarm: ${element.alarmCode}`,
+      );
 
       if (element.alarmCode === "REMOVE") {
         await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
@@ -371,89 +372,102 @@ exports.testApi = async (req, res) => {
         await karzame({
           ...vehicle.toObject(),
           ...element,
-          alertType: "DEVICE_REMOVED"
+          alertType: "DEVICE_REMOVED",
         });
 
         console.log("⚠️ Device removed alert sent");
       }
 
-      if (speed > 0 && vehicle.prkkey === true) {
-        console.log("🚗 Movement detected");
+      // if (speed > 0 && vehicle.prkkey === true) {
+      //   console.log("🚗 Movement detected");
 
-        await Vehicle.findByIdAndUpdate(vehicle._id, {
-          prkkey: false,
-          movementStatus: "moving",
-          prktime: null,
-          speed: speed,
-        });
+      //   await Vehicle.findByIdAndUpdate(vehicle._id, {
+      //     prkkey: false,
+      //     movementStatus: "moving",
+      //     prktime: null,
+      //     speed: speed,
+      //   });
 
-        await GeoFence.deleteMany({ imei: vehicle.imei });
-        console.log("🗑️ Notification flag cleared (vehicle moved)");
+      //   await GeoFence.deleteMany({ imei: vehicle.imei });
+      //   console.log("🗑️ Notification flag cleared (vehicle moved)");
 
-        if (vehicle.autoPark) {
-          console.log("🚨 AutoPark breach triggered");
+      //   if (vehicle.autoPark) {
+      //     console.log("🚨 AutoPark breach triggered");
 
-          await karzame({
-            imei: vehicle.imei,
-            vehicleName: vehicle.vehicleNickname,
-            alertType: 'GEO_FENCE_BREACH_AUTO_PARK',  
-            lat: String(vehicle.location?.latitude || element.lat || ''),
-            lng: String(vehicle.location?.longitude || element.lng || ''),
-            userId: String(vehicle.userId),
-            vehicleId: String(vehicle._id),
-          });
+      //     await karzame({
+      //       imei: vehicle.imei,
+      //       vehicleName: vehicle.vehicleNickname,
+      //       alertType: "GEO_FENCE_BREACH_AUTO_PARK",
+      //       lat: String(vehicle.location?.latitude || element.lat || ""),
+      //       lng: String(vehicle.location?.longitude || element.lng || ""),
+      //       userId: String(vehicle.userId),
+      //       vehicleId: String(vehicle._id),
+      //     });
 
-          try {
-            const token = getToken();
-            const fences = await GeoFence.find({ imei: vehicle.imei });
+      //     try {
+      //       const token = getToken();
+      //       const fences = await GeoFence.find({ imei: vehicle.imei });
 
-            for (const f of fences) {
-              await axios.delete(
-                `https://open.iopgps.com/api/fence/del/${f.fenceId}`,
-                { headers: { accessToken: token } }
-              ).catch(() => { });
-            }
+      //       for (const f of fences) {
+      //         await axios
+      //           .delete(`https://open.iopgps.com/api/fence/del/${f.fenceId}`, {
+      //             headers: { accessToken: token },
+      //           })
+      //           .catch(() => {});
+      //       }
 
-            await GeoFence.deleteMany({ imei: vehicle.imei });
-            console.log("🗑️ Fence deleted after movement");
-
-          } catch (err) {
-            console.log("⚠️ Failed to delete fence:", err.message);
-          }
-        }
-      }
+      //       await GeoFence.deleteMany({ imei: vehicle.imei });
+      //       console.log("🗑️ Fence deleted after movement");
+      //     } catch (err) {
+      //       console.log("⚠️ Failed to delete fence:", err.message);
+      //     }
+      //   }
+      // }
 
       // 🅿️ PARK DETECTED
-      if (element.alarmCode === "STAYTIMEOUT" && speed === 0) {
+      if (element.alarmCode === "STAYTIMEOUT") {
         console.log("🅿️ Parking detected");
 
-        let parktime;
+        // let parktime;
 
-        if (element.alarmTime) {
-          const time = Number(element.alarmTime);
+        // if (element.alarmTime) {
+        //   const time = Number(element.alarmTime);
 
-          parktime = time < 10000000000
-            ? new Date(time * 1000)
-            : new Date(time);
-        } else {
-          parktime = new Date();
+        //   parktime = time < 10000000000
+        //     ? new Date(time * 1000)
+        //     : new Date(time);
+        // } else {
+        //   parktime = new Date();
+        // }
+        if (vehicle.speed === 0 && payload.speed > 0) {
+          await Vehicle.findByIdAndUpdate(vehicle._id, {
+            speed: payload.speed,
+            vehicleStartTime: new Date(),
+            parktime: null,
+          });
         }
+        if (vehicle.speed > 0 && payload.speed === 0) {
+          await Vehicle.findByIdAndUpdate(vehicle._id, {
+            speed: payload.speed,
+            prkkey: true,
+            parktime: new Date(),
+            vehicleStartTime: null,
+          });
+        }
+        // console.log("🕒 Parsed Park Time:", parktime);
 
-        console.log("🕒 Parsed Park Time:", parktime);
-
-        await Vehicle.findByIdAndUpdate(vehicle._id, {
-          prkkey: true,
-          movementStatus: "parked",
-          prktime: parktime,
-          speed: 0,
-        });
+        // await Vehicle.findByIdAndUpdate(vehicle._id, {
+        //   prkkey: true,
+        //   movementStatus: "parked",
+        //   prktime: parktime,
+        //   speed: 0,
+        // });
 
         console.log("✅ Vehicle updated to parked");
       }
     }
 
     res.json({ success: true });
-
   } catch (err) {
     console.log("🔥 ERROR:", err.message);
     res.status(500).json({ success: false });
