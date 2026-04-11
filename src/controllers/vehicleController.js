@@ -425,7 +425,7 @@ exports.testApi = async (req, res) => {
       // }
 
       // 🅿️ PARK DETECTED
-      if (element.alarmCode === "STAYTIMEOUT") {
+      if (element.alarmCode == "STAYTIMEOUT") {
         console.log("🅿️ Parking detected",payload);
 
         // let parktime;
@@ -439,7 +439,7 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
-        console.log(vehicle.speed == 0 && payload.speed > 0,"testggg")
+        console.log(vehicle.speed == 0 && payload.speed > 0,"testggg","payload.speed",payload.speed,"vehicle.speed",vehicle.speed)
         if (vehicle.speed == 0 && payload.speed > 0) {
           console.log("🚗 Movement detected from parked state");
           await Vehicle.findByIdAndUpdate(vehicle._id, {
