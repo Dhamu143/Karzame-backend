@@ -130,10 +130,10 @@ const vehicleSchema = new mongoose.Schema(
       default: false,
     },
     prktime: {
-      type: String
+      type: Date
     },
     vehicleStartTime: {
-      type: String
+      type: Date
     },
     speed: {
       type: Number,
