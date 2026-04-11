@@ -445,12 +445,12 @@ exports.testApi = async (req, res) => {
           console.log("🚗 Movement detected from parked state",{
             speed: element.speed,
             vehicleStartTime: new Date(),
-            parktime: null,
+            //parktime: null,
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
             vehicleStartTime: new Date(),
-            parktime: null,
+           // parktime: null,
           });
         }
         if (vehicle.speed > 0 && element.speed == 0) {
@@ -458,13 +458,13 @@ exports.testApi = async (req, res) => {
             speed: element.speed,
             prkkey: true,
             parktime: new Date(),
-            vehicleStartTime: null,
+            //vehicleStartTime: null,
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
             prkkey: true,
             parktime: new Date(),
-            vehicleStartTime: null,
+           // vehicleStartTime: null,
           });
         }
         // console.log("🕒 Parsed Park Time:", parktime);
