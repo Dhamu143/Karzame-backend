@@ -351,7 +351,7 @@ exports.testApi = async (req, res) => {
       typeof req.body.body === "string"
         ? JSON.parse(req.body.body)
         : req.body.body;
-
+    console.log("📥 Payload:", payload,typeof req.body.body === "string");
     for (const element of payload) {
       const vehicle = await Vehicle.findOne({ imei: element.imei });
 
