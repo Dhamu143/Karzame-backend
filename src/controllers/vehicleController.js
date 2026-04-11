@@ -426,7 +426,7 @@ exports.testApi = async (req, res) => {
 
       // 🅿️ PARK DETECTED
       if (element.alarmCode === "STAYTIMEOUT") {
-        console.log("🅿️ Parking detected");
+        console.log("🅿️ Parking detected",payload);
 
         // let parktime;
 
