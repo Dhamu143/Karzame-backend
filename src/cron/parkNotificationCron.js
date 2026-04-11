@@ -6,8 +6,8 @@ const karzame = require("../services/karzame");
 
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
-    const vehicles = await Vehicle.find({ });
-    console.log(vehicles)
+  const vehicles = await Vehicle.find({});
+  console.log(vehicles);
   await checkAutoPark();
   await noLongerParked();
 });
@@ -23,7 +23,8 @@ const checkAutoPark = async () => {
 
     for (const vehicle of vehicles) {
       const diffMinutes = moment().diff(moment(vehicle.prktime), "minutes");
-
+      const lat = vehicle.location?.latitude;
+      const lng = vehicle.location?.longitude;
       console.log(
         `🚗 ${vehicle.vehicleNickname} parked for ${diffMinutes} mins`,
       );
@@ -31,8 +32,7 @@ const checkAutoPark = async () => {
       if (diffMinutes == 1) {
         if (vehicle.autoPark) {
           await GeoFence.deleteMany({ imei: vehicle.imei });
-          const lat = vehicle.location?.latitude;
-          const lng = vehicle.location?.longitude;
+
           await GeoFence.create({
             imei: vehicle.imei,
             fenceId: 0,
