@@ -353,6 +353,7 @@ exports.testApi = async (req, res) => {
         : req.body.body;
     console.log("📥 Payload:", payload,typeof req.body.body === "string");
     for (const element of payload) {
+      console.log(element);
       const vehicle = await Vehicle.findOne({ imei: element.imei });
 
       if (!vehicle) {
@@ -439,19 +440,19 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
-        console.log(vehicle.speed == 0 && payload.speed > 0,"testggg","payload.speed",payload.speed,"vehicle.speed",vehicle.speed)
-        if (vehicle.speed == 0 && payload.speed > 0) {
+        console.log(vehicle.speed == 0 && element.speed > 0,"testggg","payload.speed",element.speed,"vehicle.speed",vehicle.speed)
+        if (vehicle.speed == 0 && element.speed > 0) {
           console.log("🚗 Movement detected from parked state");
           await Vehicle.findByIdAndUpdate(vehicle._id, {
-            speed: payload.speed,
+            speed: element.speed,
             vehicleStartTime: new Date(),
             parktime: null,
           });
         }
-        if (vehicle.speed > 0 && payload.speed == 0) {
+        if (vehicle.speed > 0 && element.speed == 0) {
           console.log("🚗 Movement detected from parked state 33333");
           await Vehicle.findByIdAndUpdate(vehicle._id, {
-            speed: payload.speed,
+            speed: element.speed,
             prkkey: true,
             parktime: new Date(),
             vehicleStartTime: null,
