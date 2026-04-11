@@ -439,14 +439,14 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
-        if (vehicle.speed === 0 && payload.speed > 0) {
+        if (vehicle.speed == 0 && payload.speed > 0) {
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: payload.speed,
             vehicleStartTime: new Date(),
             parktime: null,
           });
         }
-        if (vehicle.speed > 0 && payload.speed === 0) {
+        if (vehicle.speed > 0 && payload.speed == 0) {
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: payload.speed,
             prkkey: true,
