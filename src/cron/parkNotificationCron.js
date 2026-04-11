@@ -8,8 +8,8 @@ cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
     const vehicles = await Vehicle.find({ });
     console.log(vehicles)
-  await checkAutoPark();
-  await noLongerParked();
+  // await checkAutoPark();
+  // await noLongerParked();
 });
 
 const checkAutoPark = async () => {
