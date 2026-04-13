@@ -351,7 +351,7 @@ exports.testApi = async (req, res) => {
       typeof req.body.body === "string"
         ? JSON.parse(req.body.body)
         : req.body.body;
-    console.log("📥 Payload:", payload,typeof req.body.body === "string");
+    console.log("📥 Payload:", payload, typeof req.body.body === "string");
     for (const element of payload) {
       console.log(element);
       const vehicle = await Vehicle.findOne({ imei: element.imei });
@@ -374,6 +374,7 @@ exports.testApi = async (req, res) => {
           ...vehicle.toObject(),
           ...element,
           alertType: "DEVICE_REMOVED",
+          notificationBody: "Vehicle Stolen Alert",
         });
 
         console.log("⚠️ Device removed alert sent");
@@ -427,7 +428,7 @@ exports.testApi = async (req, res) => {
 
       // 🅿️ PARK DETECTED
       if (element.alarmCode == "STAYTIMEOUT") {
-        console.log("🅿️ Parking detected",payload);
+        console.log("🅿️ Parking detected", payload);
 
         // let parktime;
 
@@ -440,9 +441,16 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
-        console.log(vehicle.speed == 0 && element.speed > 0,"testggg","payload.speed",element.speed,"vehicle.speed",vehicle.speed)
+        console.log(
+          vehicle.speed == 0 && element.speed > 0,
+          "testggg",
+          "payload.speed",
+          element.speed,
+          "vehicle.speed",
+          vehicle.speed,
+        );
         if (vehicle.speed == 0 && element.speed > 0) {
-          console.log("🚗 Movement detected from parked state",{
+          console.log("🚗 Movement detected from parked state", {
             speed: element.speed,
             vehicleStartTime: new Date(),
             prktime: null,
@@ -454,7 +462,7 @@ exports.testApi = async (req, res) => {
           });
         }
         if (vehicle.speed > 0 && element.speed == 0) {
-          console.log("🚗 Movement detected from parked state 33333",{
+          console.log("🚗 Movement detected from parked state 33333", {
             speed: element.speed,
             prkkey: true,
             prktime: new Date(),
