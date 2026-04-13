@@ -143,6 +143,19 @@ const vehicleSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    relayLogs: [
+  {
+    parameter: {
+      type: String,
+      enum: ['1', '2', '3'],
+    },
+    message: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }
+]
   },
   { timestamps: true },
 );

@@ -454,11 +454,15 @@ exports.testApi = async (req, res) => {
             speed: element.speed,
             vehicleStartTime: new Date(),
             prktime: null,
+            lat: element.lat,
+            lng: element.lng,
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
             vehicleStartTime: new Date(),
             prktime: null,
+            lat: element.lat,
+            lng: element.lng,
           });
         }
         if (vehicle.speed > 0 && element.speed == 0) {
@@ -466,6 +470,8 @@ exports.testApi = async (req, res) => {
             speed: element.speed,
             prkkey: true,
             prktime: new Date(),
+            lat: element.lat,
+            lng: element.lng,
             //vehicleStartTime: null,
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
@@ -473,6 +479,8 @@ exports.testApi = async (req, res) => {
             prkkey: true,
             prktime: new Date(),
             vehicleStartTime: null,
+            lat: element.lat,
+            lng: element.lng,
           });
         }
         // console.log("🕒 Parsed Park Time:", parktime);
