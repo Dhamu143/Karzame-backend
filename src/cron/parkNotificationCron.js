@@ -131,7 +131,7 @@ const Vehicle = require("../models/Vehicle");
 const GeoFence = require("../models/GeoFence");
 const moment = require("moment");
 const karzame = require("../services/karzame");
-
+const NotificationLog = require("../models/NotificationLog");
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
   const vehicles = await Vehicle.find({});
@@ -186,7 +186,26 @@ const checkAutoPark = async () => {
             vehicleId: String(vehicle._id),
             showGeoFenceModal: "true",
           };
-          await karzame(payload);
+          // await karzame(payload);
+
+          try {
+            await karzame(payload);
+
+            await NotificationLog.create({
+              ...payload,
+              status: "SENT",
+            });
+
+            console.log("📥 Notification stored (AUTO_PARK_SUGGESTION)");
+          } catch (err) {
+            await NotificationLog.create({
+              ...payload,
+              status: "FAILED",
+              error: err.message,
+            });
+
+            console.log("❌ Notification failed & stored");
+          }
         }
       }
     }
@@ -241,7 +260,25 @@ const noLongerParked = async () => {
           vehicleId: String(vehicle._id),
         };
 
-        await karzame(payload);
+        // await karzame(payload);
+        try {
+          await karzame(payload);
+
+          await NotificationLog.create({
+            ...payload,
+            status: "SENT",
+          });
+
+          console.log("📥 Notification stored (Vehicle_AUTO)");
+        } catch (err) {
+          await NotificationLog.create({
+            ...payload,
+            status: "FAILED",
+            error: err.message,
+          });
+
+          console.log("❌ Notification failed & stored");
+        }
       }
     }
   } catch (error) {
