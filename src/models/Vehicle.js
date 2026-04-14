@@ -112,10 +112,11 @@ const vehicleSchema = new mongoose.Schema(
         type: String,
         default: "Unknown Location",
       },
-      latitude: Number,
-      longitude: Number,
+      latitude: String,
+      longitude: String,
     },
-
+    lat: String,
+    lng: String,
     alerts: {
       type: Number,
       default: 0,
@@ -130,10 +131,10 @@ const vehicleSchema = new mongoose.Schema(
       default: false,
     },
     prktime: {
-      type: Date
+      type: Date,
     },
     vehicleStartTime: {
-      type: Date
+      type: Date,
     },
     speed: {
       type: Number,
@@ -144,18 +145,18 @@ const vehicleSchema = new mongoose.Schema(
       default: false,
     },
     relayLogs: [
-  {
-    parameter: {
-      type: String,
-      enum: ['1', '2', '3'],
-    },
-    message: String,
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }
-]
+      {
+        parameter: {
+          type: String,
+          enum: ["1", "2", "3"],
+        },
+        message: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
