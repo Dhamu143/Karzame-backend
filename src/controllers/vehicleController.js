@@ -3,7 +3,7 @@ const Vehicle = require("../models/Vehicle");
 const { getToken } = require("../services/gpsTokenManager");
 const { registerVehicle } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
-const ParkVehicle = require("../models/ParkVehicle");
+const NotificationLog = require("../models/NotificationLog");
 
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
@@ -441,6 +441,7 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
+        
         console.log(
           vehicle.speed == 0 && element.speed > 0,
           "testggg",
@@ -456,6 +457,8 @@ exports.testApi = async (req, res) => {
             prktime: null,
             lat: element.lat,
             lng: element.lng,
+            alarmCode: element.alarmCode,
+
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
@@ -463,6 +466,8 @@ exports.testApi = async (req, res) => {
             prktime: null,
             lat: element.lat,
             lng: element.lng,
+            alarmCode: element.alarmCode,
+
           });
         }
         if (vehicle.speed > 0 && element.speed == 0) {
@@ -472,6 +477,8 @@ exports.testApi = async (req, res) => {
             prktime: new Date(),
             lat: element.lat,
             lng: element.lng,
+            alarmCode: element.alarmCode,
+
             //vehicleStartTime: null,
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
@@ -481,6 +488,8 @@ exports.testApi = async (req, res) => {
             vehicleStartTime: null,
             lat: element.lat,
             lng: element.lng,
+            alarmCode: element.alarmCode,
+
           });
         }
         // console.log("🕒 Parsed Park Time:", parktime);

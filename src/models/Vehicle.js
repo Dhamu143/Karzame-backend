@@ -144,6 +144,10 @@ const vehicleSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    alarmCode: {
+      type: String,
+      default: null,
+    },
     relayLogs: [
       {
         parameter: {

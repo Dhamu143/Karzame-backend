@@ -10,11 +10,17 @@ const notificationLogSchema = new mongoose.Schema(
     lng: String,
     userId: String,
     vehicleId: String,
+    address: String,
 
     status: {
       type: String,
       enum: ["SENT", "FAILED"],
       default: "SENT",
+    },
+    alertStatus: {
+      type: String,
+      enum: ["Pending", "Owner Attended", "Resolved"],
+      default: "Pending",
     },
     error: String,
   },

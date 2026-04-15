@@ -132,6 +132,7 @@ const GeoFence = require("../models/GeoFence");
 const moment = require("moment");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
+
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
   const vehicles = await Vehicle.find({});
@@ -185,6 +186,7 @@ const checkAutoPark = async () => {
             userId: String(vehicle.userId),
             vehicleId: String(vehicle._id),
             showGeoFenceModal: "true",
+            alarmCode: vehicle.alarmCode,
           };
           // await karzame(payload);
 
@@ -194,6 +196,7 @@ const checkAutoPark = async () => {
             await NotificationLog.create({
               ...payload,
               status: "SENT",
+              alertStatus: "Pending"
             });
 
             console.log("📥 Notification stored (AUTO_PARK_SUGGESTION)");
@@ -238,7 +241,6 @@ const noLongerParked = async () => {
         lng
       });
 
-      // ✅ VALIDATION (IMPORTANT)
       if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
         console.log("❌ Invalid location, skipping:", {
           imei: vehicle.imei,
@@ -258,6 +260,7 @@ const noLongerParked = async () => {
           lng: String(lng),
           userId: String(vehicle.userId),
           vehicleId: String(vehicle._id),
+          alarmCode: vehicle.alarmCode,
         };
 
         // await karzame(payload);
@@ -267,6 +270,8 @@ const noLongerParked = async () => {
           await NotificationLog.create({
             ...payload,
             status: "SENT",
+            alertStatus: "Pending"
+
           });
 
           console.log("📥 Notification stored (Vehicle_AUTO)");

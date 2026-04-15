@@ -165,9 +165,6 @@ exports.getGeoFences = async (req, res) => {
   }
 };
 
-
-// Inside controllers/geoFenceController.js
-
 exports.enableAutoParkAndGeofence = async (req, res) => {
   try {
     const { userId, enable } = req.body;
@@ -177,7 +174,6 @@ exports.enableAutoParkAndGeofence = async (req, res) => {
       return res.status(400).json({ success: false, message: 'userId required' });
     }
 
-    // ✅ Just update the autoPark flag in the database
     await Vehicle.updateMany(
       { userId },
       { $set: { autoPark: enable } }
@@ -185,7 +181,6 @@ exports.enableAutoParkAndGeofence = async (req, res) => {
 
     console.log(`⚙️ autoPark set to ${enable} for all vehicles belonging to ${userId}`);
 
-    // Note: If 'enable' is false, you might want to delete existing geofences right here.
 
     return res.json({
       success: true,

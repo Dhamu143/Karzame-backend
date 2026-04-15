@@ -36,6 +36,22 @@ const getNotifications = async (req, res) => {
   }
 };
 
+const updateAlertStatus = async (req, res) => {
+  try {
+    const { alertStatus } = req.body;
+    const updated = await NotificationLog.findByIdAndUpdate(
+      req.params.id,
+      { alertStatus },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
   getNotifications,
+  updateAlertStatus,
 };
