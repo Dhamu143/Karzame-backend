@@ -191,15 +191,23 @@ const checkAutoPark = async () => {
           // await karzame(payload);
 
           try {
-            await karzame(payload);
-
-            await NotificationLog.create({
+            const notification = await NotificationLog.create({
               ...payload,
-              status: "SENT",
+              status: "PENDING",
               alertStatus: "Pending"
             });
 
-            console.log("📥 Notification stored (AUTO_PARK_SUGGESTION)");
+            const updatedPayload = {
+              ...payload,
+              notificationId: notification._id.toString(), // 🔥 IMPORTANT
+            };
+
+            await karzame(updatedPayload);
+
+            notification.status = "SENT";
+            await notification.save();
+
+            console.log("📥 Notification stored + sent");
           } catch (err) {
             await NotificationLog.create({
               ...payload,
@@ -265,16 +273,23 @@ const noLongerParked = async () => {
 
         // await karzame(payload);
         try {
-          await karzame(payload);
-
-          await NotificationLog.create({
+          const notification = await NotificationLog.create({
             ...payload,
-            status: "SENT",
+            status: "PENDING",
             alertStatus: "Pending"
-
           });
 
-          console.log("📥 Notification stored (Vehicle_AUTO)");
+          const updatedPayload = {
+            ...payload,
+            notificationId: notification._id.toString(),
+          };
+
+          await karzame(updatedPayload);
+
+          notification.status = "SENT";
+          await notification.save();
+
+          console.log("📥 Notification stored + sent (Vehicle_AUTO)");
         } catch (err) {
           await NotificationLog.create({
             ...payload,

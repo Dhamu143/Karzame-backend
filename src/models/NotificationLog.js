@@ -19,7 +19,7 @@ const notificationLogSchema = new mongoose.Schema(
     },
     alertStatus: {
       type: String,
-      enum: ["Pending", "Owner Attended", "Resolved"],
+      enum: ["Pending", "Owner Attended", "Resolved" ,"Rejected"],
       default: "Pending",
     },
     error: String,
