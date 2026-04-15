@@ -191,23 +191,23 @@ const checkAutoPark = async () => {
           // await karzame(payload);
 
           try {
-            const notification = await NotificationLog.create({
+            console.log("📤 Sending Notification (AUTO_PARK_SUGGESTION):", payload);
+
+            const savedNotification = await NotificationLog.create({
               ...payload,
-              status: "PENDING",
+              status: "SENT",
               alertStatus: "Pending"
             });
 
-            const updatedPayload = {
+            console.log("📥 Notification stored:", savedNotification._id);
+
+            const response = {
               ...payload,
-              notificationId: notification._id.toString(), // 🔥 IMPORTANT
+              notificationId: savedNotification._id,
             };
 
-            await karzame(updatedPayload);
+            await karzame(response);
 
-            notification.status = "SENT";
-            await notification.save();
-
-            console.log("📥 Notification stored + sent");
           } catch (err) {
             await NotificationLog.create({
               ...payload,
@@ -272,33 +272,33 @@ const noLongerParked = async () => {
         };
 
         // await karzame(payload);
-        try {
-          const notification = await NotificationLog.create({
-            ...payload,
-            status: "PENDING",
-            alertStatus: "Pending"
-          });
+            try {
+            console.log("📤 Sending Notification (AUTO_PARK_SUGGESTION):", payload);
 
-          const updatedPayload = {
-            ...payload,
-            notificationId: notification._id.toString(),
-          };
+            const savedNotification = await NotificationLog.create({
+              ...payload,
+              status: "SENT",
+              alertStatus: "Pending"
+            });
 
-          await karzame(updatedPayload);
+            console.log("📥 Notification stored:", savedNotification._id);
 
-          notification.status = "SENT";
-          await notification.save();
+            const response = {
+              ...payload,
+              notificationId: savedNotification._id,
+            };
 
-          console.log("📥 Notification stored + sent (Vehicle_AUTO)");
-        } catch (err) {
-          await NotificationLog.create({
-            ...payload,
-            status: "FAILED",
-            error: err.message,
-          });
+            await karzame(response);
 
-          console.log("❌ Notification failed & stored");
-        }
+          } catch (err) {
+            await NotificationLog.create({
+              ...payload,
+              status: "FAILED",
+              error: err.message,
+            });
+
+            console.log("❌ Notification failed & stored");
+          }
       }
     }
   } catch (error) {
