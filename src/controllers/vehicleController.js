@@ -351,7 +351,9 @@ exports.testApi = async (req, res) => {
       typeof req.body.body === "string"
         ? JSON.parse(req.body.body)
         : req.body.body;
+
     console.log("📥 Payload:", payload, typeof req.body.body === "string");
+
     for (const element of payload) {
       console.log(element);
       const vehicle = await Vehicle.findOne({ imei: element.imei });
@@ -380,6 +382,31 @@ exports.testApi = async (req, res) => {
         console.log("⚠️ Device removed alert sent");
       }
 
+      if (element.alarmCode === "SOS") {
+        await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+
+        await karzame({
+          ...vehicle.toObject(),
+          ...element,
+          alertType: "POWER_CUT",
+          notificationBody: "Vehicle Power Cut Alert",
+        });
+
+        console.log("⚠️ Device removed alert sent");
+      }
+      if (element.alarmCode === "FENCEOUT") {
+        await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+
+        await karzame({
+          ...vehicle.toObject(),
+          ...element,
+          alertType: "FENCEOUT",
+          notificationBody: "Vehicle Fence Out Alert",
+        });
+
+        console.log("⚠️ Device removed alert sent");
+      }
+      
       // if (speed > 0 && vehicle.prkkey === true) {
       //   console.log("🚗 Movement detected");
 
@@ -441,7 +468,7 @@ exports.testApi = async (req, res) => {
         // } else {
         //   parktime = new Date();
         // }
-        
+
         console.log(
           vehicle.speed == 0 && element.speed > 0,
           "testggg",
@@ -450,6 +477,7 @@ exports.testApi = async (req, res) => {
           "vehicle.speed",
           vehicle.speed,
         );
+
         if (vehicle.speed == 0 && element.speed > 0) {
           console.log("🚗 Movement detected from parked state", {
             speed: element.speed,
@@ -470,6 +498,7 @@ exports.testApi = async (req, res) => {
 
           });
         }
+
         if (vehicle.speed > 0 && element.speed == 0) {
           console.log("🚗 Movement detected from parked state 33333", {
             speed: element.speed,
@@ -492,6 +521,7 @@ exports.testApi = async (req, res) => {
 
           });
         }
+
         // console.log("🕒 Parsed Park Time:", parktime);
 
         // await Vehicle.findByIdAndUpdate(vehicle._id, {
