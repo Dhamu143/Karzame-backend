@@ -4,7 +4,7 @@ const { getToken } = require("../services/gpsTokenManager");
 const { registerVehicle } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
-
+const GeoFence = require("../models/GeoFence");
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
   try {
@@ -419,6 +419,8 @@ exports.testApi = async (req, res) => {
 
         console.log("⚠️ Device removed alert sent");
       }
+      const fence = await GeoFence.findOne({ imei: vehicle.imei });
+
       if (element.alarmCode == "FENCEOUT") {
         // await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
         await karzame({
@@ -429,7 +431,10 @@ exports.testApi = async (req, res) => {
           location: vehicle?.location?.address,
           lat: vehicle?.location?.latitude || element.lat,
           lng: vehicle?.location?.longitude || element.lng,
+          radius: fence?.radius || 0,
           createdAt: new Date(),
+          alertType: "FENCEOUT",
+          notificationBody: "Vehicle Fence Out Alert",
         });
 
         console.log("⚠️ Fence out alert sent");
