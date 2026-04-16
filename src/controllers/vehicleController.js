@@ -394,19 +394,46 @@ exports.testApi = async (req, res) => {
 
         console.log("⚠️ Device removed alert sent");
       }
-      if (element.alarmCode === "FENCEOUT") {
-        await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+      // if (element.alarmCode === "FENCEOUT") {
+      //   await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+
+      //   await karzame({
+      //     ...vehicle.toObject(),
+      //     ...element,
+      //     alertType: "FENCEOUT",
+      //     notificationBody: "Vehicle Fence Out Alert",
+      //   });
+
+      //   console.log("⚠️ Device removed alert sent");
+      // }
+
+      if (element.alarmCode === "REMOVECONTINUOUSLY") {
+        // await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
 
         await karzame({
           ...vehicle.toObject(),
           ...element,
-          alertType: "FENCEOUT",
-          notificationBody: "Vehicle Fence Out Alert",
+          alertType: "REMOVECONTINUOUSLY",
+          notificationBody: "Vehicle Remove Continuously Alert",
         });
 
         console.log("⚠️ Device removed alert sent");
       }
-      
+      if (element.alarmCode == "FENCEOUT") {
+        // await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+        await karzame({
+          ...vehicle.toObject(),
+          ...element,
+          userName: vehicle?.ownerName,
+          phone: vehicle?.phone,
+          location: vehicle?.location?.address,
+          lat: vehicle?.location?.latitude || element.lat,
+          lng: vehicle?.location?.longitude || element.lng,
+          createdAt: new Date(),
+        });
+
+        console.log("⚠️ Fence out alert sent");
+      }
       // if (speed > 0 && vehicle.prkkey === true) {
       //   console.log("🚗 Movement detected");
 
@@ -533,6 +560,8 @@ exports.testApi = async (req, res) => {
 
         console.log("✅ Vehicle updated to parked");
       }
+
+
     }
 
     res.json({ success: true });
