@@ -22,6 +22,7 @@ const notificationLogSchema = new mongoose.Schema(
       enum: ["Pending", "Owner Attended", "Resolved" ,"Rejected"],
       default: "Pending",
     },
+    licensePlate: String,
     error: String,
   },
   { timestamps: true }

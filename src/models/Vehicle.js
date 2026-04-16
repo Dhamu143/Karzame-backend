@@ -148,6 +148,10 @@ const vehicleSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    engineStatus: {
+  type: Boolean,
+  default: true,
+},
     relayLogs: [
       {
         parameter: {

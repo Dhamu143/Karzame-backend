@@ -187,6 +187,7 @@ const checkAutoPark = async () => {
             vehicleId: String(vehicle._id),
             showGeoFenceModal: "true",
             alarmCode: vehicle.alarmCode,
+            licensePlate: vehicle.licensePlate,
           };
           // await karzame(payload);
 
@@ -269,6 +270,7 @@ const noLongerParked = async () => {
           userId: String(vehicle.userId),
           vehicleId: String(vehicle._id),
           alarmCode: vehicle.alarmCode,
+          licensePlate: vehicle.licensePlate,
         };
 
         // await karzame(payload);

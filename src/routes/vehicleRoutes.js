@@ -13,7 +13,7 @@ const {
 } = require('../controllers/vehicleController')
 
 router.post('/', createVehicle)
-// console.log('truww')
+
 router.get('/', getVehicles)
 
 router.get('/user/:userId', getVehiclesByUser)
