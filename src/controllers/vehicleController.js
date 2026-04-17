@@ -389,7 +389,7 @@ exports.testApi = async (req, res) => {
           ...vehicle.toObject(),
           ...element,
           alertType: "POWER_CUT",
-          notificationBody: "Vehicle Power Cut Alert",
+          notificationBody: "SOS Alert",
         });
 
         console.log("⚠️ Device removed alert sent");
