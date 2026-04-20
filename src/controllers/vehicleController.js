@@ -370,7 +370,7 @@ exports.testApi = async (req, res) => {
         `📡 IMEI: ${element.imei} | Speed: ${speed} | Alarm: ${element.alarmCode}`,
       );
 
-      if (element.alarmCode === "REMOVE") {
+      if (element.alarmCode == "REMOVE") {
         console.log("🚨 Device removal detected for IMEI:", element.imei);
         await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
 
