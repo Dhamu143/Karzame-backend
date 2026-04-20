@@ -371,6 +371,7 @@ exports.testApi = async (req, res) => {
       );
 
       if (element.alarmCode === "REMOVE") {
+        console.log("🚨 Device removal detected for IMEI:", element.imei);
         await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
 
         await karzame({
@@ -379,12 +380,13 @@ exports.testApi = async (req, res) => {
           alertType: "DEVICE_REMOVED",
           notificationBody: "Vehicle Stolen Alert",
         });
-
         console.log("⚠️ Device removed alert sent");
-
+        console.log("🔧 Attempting to stop engine for IMEI:", element.imei);
         try {
+          console.log("🔑 Fetching GPS token...");
           await sendRelay("1", [element.imei], 0, "Engine stop due to device removal");
           console.log("🔧 Engine stopped for IMEI:", element.imei);
+
         } catch (error) {
           console.error("❌ Failed to stop engine:", error.message);
         }
