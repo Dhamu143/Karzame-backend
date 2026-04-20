@@ -140,3 +140,116 @@ exports.sendRelayCommand = async (req, res) => {
     });
   }
 };
+
+exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay command") => {
+  try {
+    console.log('🚀 START sendRelay');
+    console.log('📥 Parameters:', { parameter, imeis, code, message });
+
+    if (!parameter || !imeis || !Array.isArray(imeis) || imeis.length === 0) {
+      console.log('❌ Invalid payload');
+      throw new Error('Invalid payload. "parameter" and imeis[] required');
+    }
+
+    if (!['1', '2', '3'].includes(String(parameter))) {
+      console.log('❌ Invalid parameter:', parameter);
+      throw new Error('Invalid parameter (allowed: 1,2,3)');
+    }
+
+    const token = getToken();
+    if (!token) {
+      console.log('❌ Token missing');
+      throw new Error('GPS API token missing');
+    }
+
+    console.log('🔑 Token OK');
+
+    await Vehicle.updateMany(
+      { imei: { $in: imeis } },
+      {
+        $push: {
+          relayLogs: {
+            parameter: String(parameter),
+            message
+          }
+        }
+      }
+    );
+
+    console.log('💾 Relay logs saved for IMEIs:', imeis);
+
+    let engineStatus = null;
+
+    if (String(parameter) === "1") {
+      engineStatus = false; // OFF
+    } else if (String(parameter) === "2") {
+      engineStatus = true; // ON
+    }
+
+    if (engineStatus !== null) {
+      await Vehicle.updateMany(
+        { imei: { $in: imeis } },
+        { engineStatus }
+      );
+
+      console.log(
+        `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
+      );
+    } else {
+      console.log('ℹ️ No engine status change for parameter:', parameter);
+    }
+
+    const iopgpsPayload = {
+      code: Number(code),
+      message: String(message),
+      parameter: String(parameter),
+      imeis
+    };
+
+    console.log('📤 Sending to IOPGPS:', iopgpsPayload);
+
+    const response = await axios.post(
+      'https://open.iopgps.com/api/instruction/relay',
+      iopgpsPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          accessToken: token
+        }
+      }
+    );
+
+    console.log('✅ IOPGPS Response:', response.data);
+
+    const isSuccess = response.data.code === 0;
+
+    console.log(
+      isSuccess
+        ? '🎉 Command Success'
+        : '⚠️ Command Failed'
+    );
+
+    return {
+      success: isSuccess,
+      message: isSuccess
+        ? 'Command sent successfully'
+        : response.data.result || 'Command failed',
+      data: response.data
+    };
+
+  } catch (error) {
+    console.error('\n🔥 ERROR in sendRelay');
+
+    let errorDetails = error.message;
+
+    if (error.response) {
+      console.error('🚨 GPS API Error:', error.response.data);
+      errorDetails =
+        error.response.data?.result || error.response.data;
+    }
+
+    console.error('❌ Final Error:', errorDetails);
+
+    throw new Error(errorDetails);
+  }
+};

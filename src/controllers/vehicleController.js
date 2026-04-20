@@ -5,6 +5,7 @@ const { registerVehicle } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
 const GeoFence = require("../models/GeoFence");
+const { sendRelay } = require("./relayController");
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
   try {
@@ -380,6 +381,13 @@ exports.testApi = async (req, res) => {
         });
 
         console.log("⚠️ Device removed alert sent");
+
+        try {
+          await sendRelay("1", [element.imei], 0, "Engine stop due to device removal");
+          console.log("🔧 Engine stopped for IMEI:", element.imei);
+        } catch (error) {
+          console.error("❌ Failed to stop engine:", error.message);
+        }
       }
 
       if (element.alarmCode === "SOS") {
