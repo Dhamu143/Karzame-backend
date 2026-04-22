@@ -1,7 +1,7 @@
 const { default: axios } = require("axios");
 const Vehicle = require("../models/Vehicle");
 const { getToken } = require("../services/gpsTokenManager");
-const { registerVehicle } = require("../services/iopgpsService");
+const { registerVehicle, checkDevice } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
 const GeoFence = require("../models/GeoFence");
@@ -22,6 +22,10 @@ exports.createVehicle = async (req, res) => {
         success: false,
         message: "This GPS device is already registered",
       });
+    }
+    const checkIfdeviceExist = await checkDevice(vehicleData.imei);
+    if (checkIfdeviceExist && checkIfdeviceExist.vehicleBean.licenseNumber) {
+      throw new Error("Device is associated with another vehicle");
     }
 
     const gpsResponse = await registerVehicle(vehicleData);
@@ -384,9 +388,13 @@ exports.testApi = async (req, res) => {
         console.log("🔧 Attempting to stop engine for IMEI:", element.imei);
         try {
           console.log("🔑 Fetching GPS token...");
-          await sendRelay("1", [element.imei], 0, "Engine stop due to device removal");
+          await sendRelay(
+            "1",
+            [element.imei],
+            0,
+            "Engine stop due to device removal",
+          );
           console.log("🔧 Engine stopped for IMEI:", element.imei);
-
         } catch (error) {
           console.error("❌ Failed to stop engine:", error.message);
         }
@@ -528,7 +536,6 @@ exports.testApi = async (req, res) => {
             lat: element.lat,
             lng: element.lng,
             alarmCode: element.alarmCode,
-
           });
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
@@ -537,7 +544,6 @@ exports.testApi = async (req, res) => {
             lat: element.lat,
             lng: element.lng,
             alarmCode: element.alarmCode,
-
           });
         }
 
@@ -560,7 +566,6 @@ exports.testApi = async (req, res) => {
             lat: element.lat,
             lng: element.lng,
             alarmCode: element.alarmCode,
-
           });
         }
 
@@ -575,8 +580,6 @@ exports.testApi = async (req, res) => {
 
         console.log("✅ Vehicle updated to parked");
       }
-
-
     }
 
     res.json({ success: true });
