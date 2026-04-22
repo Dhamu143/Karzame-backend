@@ -41,8 +41,9 @@ async function generateToken() {
 	generating = false
 }
 
-function getToken() {
+async function getToken() {
 	if (!accessToken) {
+		await generateToken()
 		throw new Error('GPS Token not generated yet')
 	}
 

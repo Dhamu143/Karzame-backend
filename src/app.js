@@ -5,7 +5,6 @@ const vehicleRoutes = require('./routes/vehicleRoutes')
 const geoFenceRoutes = require('./routes/geoFenceRoutes');
 const relayRoutes = require('./routes/relayRoutes');
 const notificationRoutes = require("./routes/notificationRoutes");
-
 const app = express()
 
 app.use(cors())

@@ -1,9 +1,9 @@
 const axios = require('axios')
 const { getToken } = require('./gpsTokenManager')
 
-exports.registerVehicle = async (vehicleData) => {
+const registerVehicle = async (vehicleData) => {
 	try {
-		const token = getToken()
+		const token = await getToken()
 
 		const payload = {
 			licenseNumber: vehicleData.licensePlate,
@@ -44,4 +44,43 @@ exports.registerVehicle = async (vehicleData) => {
 			}
 		)
 	}
+}
+
+const checkDevice = async (imei) => {
+	try {
+		console.log(`Checking device with IMEI: ${imei}`)
+		const token =await getToken()
+		console.log('Token for device check:', token)
+		if(token){
+console.log(`Checking device with IMEI:========= ${imei}`)
+		const response = await axios.get(`https://open.iopgps.com/api/device/detail?imei=${imei}`, {
+			headers: {
+				accessToken: token,
+				'Content-Type': 'application/json',
+			},
+		})
+
+		console.log('IOPGPS RESPONSE:', response.data)
+		if(response.data && response.data.success)
+		return response.data
+		}
+		
+	} catch (error) {
+		console.log('IOPGPS ERROR:', error.response?.data || error.message)
+
+		return (
+			error.response?.data || {
+				code: -1,
+				msg: 'IOPGPS server error',
+			}
+		)
+	}
+}
+setTimeout(() => {
+checkDevice("867144061168249")
+},1000)
+
+module.exports = {
+	registerVehicle,
+	checkDevice,
 }
