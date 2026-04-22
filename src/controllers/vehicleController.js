@@ -24,7 +24,7 @@ exports.createVehicle = async (req, res) => {
       });
     }
     const checkIfdeviceExist = await checkDevice(vehicleData.imei);
-    if (checkIfdeviceExist && checkIfdeviceExist.vehicleBean.licenseNumber) {
+    if (checkIfdeviceExist && checkIfdeviceExist.vehicleBean && checkIfdeviceExist.vehicleBean.licenseNumber) {
       throw new Error("Device is associated with another vehicle");
     }
 
