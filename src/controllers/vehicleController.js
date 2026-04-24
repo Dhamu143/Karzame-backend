@@ -429,8 +429,8 @@ exports.getVehicleLocation = async (req, res) => {
 exports.testApi = async (req, res) => {
   try {
     console.log("🚀 TEST API HIT");
-
     const payload = req.body.body;
+    console.log("📥 Raw Payload:", payload);
     console.log("📥 Payload:", payload, typeof req.body.body === "string");
 
     for (const element of payload) {
