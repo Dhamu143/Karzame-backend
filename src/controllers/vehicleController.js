@@ -6,6 +6,7 @@ const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
 const GeoFence = require("../models/GeoFence");
 const { sendRelay } = require("./relayController");
+
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
   try {

@@ -52,7 +52,7 @@ const vehicleSchema = new mongoose.Schema(
     },
 
     // imei: {
-    // 	type: String,
+    // 	type: String,Fuser
     // 	required: true,
     // 	unique: true,
     // 	trim: true,
@@ -149,9 +149,9 @@ const vehicleSchema = new mongoose.Schema(
       default: null,
     },
     engineStatus: {
-  type: Boolean,
-  default: true,
-},
+      type: Boolean,
+      default: true,
+    },
     relayLogs: [
       {
         parameter: {
