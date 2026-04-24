@@ -1,7 +1,5 @@
-// controllers/premiumUserController.js
-const PremiumUser = require('../models/PremiumUser'); // Adjust path as needed
+const PremiumUser = require('../models/Premiumuser'); 
 
-// Create a new premium user
 exports.createPremiumUser = async (req, res) => {
     try {
         const premiumUser = new PremiumUser(req.body);
