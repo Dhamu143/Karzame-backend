@@ -25,7 +25,11 @@ exports.createVehicle = async (req, res) => {
       });
     }
     const checkIfdeviceExist = await checkDevice(vehicleData.imei);
-    if (checkIfdeviceExist && checkIfdeviceExist.vehicleBean && checkIfdeviceExist.vehicleBean.licenseNumber) {
+    if (
+      checkIfdeviceExist &&
+      checkIfdeviceExist.vehicleBean &&
+      checkIfdeviceExist.vehicleBean.licenseNumber
+    ) {
       throw new Error("Device is associated with another vehicle");
     }
 
@@ -237,10 +241,13 @@ exports.getVehiclesByUser = async (req, res) => {
 
     // 👉 Check what exists in DB
     const allVehicles = await Vehicle.find({});
-    console.log("📦 All Vehicles in DB:", allVehicles.map(v => ({
-      _id: v._id,
-      userId: v.userId
-    })));
+    console.log(
+      "📦 All Vehicles in DB:",
+      allVehicles.map((v) => ({
+        _id: v._id,
+        userId: v.userId,
+      })),
+    );
 
     const vehicles = await Vehicle.find(filter)
       .skip(skip)
@@ -264,7 +271,6 @@ exports.getVehiclesByUser = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-
   } catch (error) {
     console.log("🔥 ERROR:", error);
     res.status(500).json({
@@ -430,9 +436,8 @@ exports.testApi = async (req, res) => {
   try {
     console.log("🚀 TEST API HIT");
 
-    const payload = req.body.body;
-    console.log("📥 Payload:", payload, typeof req.body.body === "string");
-
+    const payload = req.body;
+    console.log(payload)
     for (const element of payload) {
       console.log(element);
       const vehicle = await Vehicle.findOne({ imei: element.imei });
