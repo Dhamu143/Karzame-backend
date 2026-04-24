@@ -3,14 +3,14 @@ const router = express.Router();
 
 const {
   createSubscription,
-  getSubscriptions,
+  getAllSubscriptions,
   getSubscriptionById,
   updateSubscription,
   deleteSubscription,
 } = require("../controllers/subscriptionController");
 
 router.post("/", createSubscription);
-router.get("/", getSubscriptions);
+router.get("/", getAllSubscriptions);
 router.get("/:id", getSubscriptionById);
 router.put("/:id", updateSubscription);
 router.delete("/:id", deleteSubscription);
