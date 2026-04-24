@@ -68,7 +68,7 @@ exports.getVehicles = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
+    console.log("Query Params:", req.query);
     const { status, movementStatus, stolen, search } = req.query;
 
     let filter = {};
@@ -111,6 +111,7 @@ exports.getVehicles = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
+    console.log("Fetched Vehicles:", vehicles);
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -146,17 +147,79 @@ exports.getVehicleById = async (req, res) => {
   }
 };
 
+// exports.getVehiclesByUser = async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+//     const skip = (page - 1) * limit;
+
+//     console.log("Query Params for user vehicles:", req.query);
+//     const { status, movementStatus, stolen } = req.query;
+
+//     let filter = {
+//       userId: req.params.userId,
+//     };
+
+//     if (status) {
+//       filter.status = status;
+//     }
+
+//     if (movementStatus) {
+//       filter.movementStatus = movementStatus;
+//     }
+
+//     if (stolen !== undefined && stolen !== "") {
+//       filter.stolen = stolen === "true";
+//     }
+
+//     const vehicles = await Vehicle.find(filter)
+//       .skip(skip)
+//       .limit(limit)
+//       .sort({ createdAt: -1 });
+
+//     const total = await Vehicle.countDocuments(filter);
+//     console.log("Filter for user vehicles:", filter);
+
+//     res.status(200).json({
+//       success: true,
+//       message: "User vehicles fetched successfully",
+//       data: vehicles,
+//       pagination: {
+//         total,
+//         page,
+//         limit,
+//         totalPages: Math.ceil(total / limit),
+//       },
+//     });
+//     console.log("User Vehicles:", vehicles);
+
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//       data: null,
+//     });
+//   }
+// };
+
 exports.getVehiclesByUser = async (req, res) => {
   try {
+    console.log("👉 HIT /vehicles/user API");
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+
+    console.log("📥 Params:", req.params);
+    console.log("📥 Query:", req.query);
 
     const { status, movementStatus, stolen } = req.query;
 
     let filter = {
       userId: req.params.userId,
     };
+
+    console.log("🔎 Initial Filter:", filter);
 
     if (status) {
       filter.status = status;
@@ -170,12 +233,25 @@ exports.getVehiclesByUser = async (req, res) => {
       filter.stolen = stolen === "true";
     }
 
+    console.log("🔎 Final Filter:", filter);
+
+    // 👉 Check what exists in DB
+    const allVehicles = await Vehicle.find({});
+    console.log("📦 All Vehicles in DB:", allVehicles.map(v => ({
+      _id: v._id,
+      userId: v.userId
+    })));
+
     const vehicles = await Vehicle.find(filter)
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
+    console.log("🚘 Matching Vehicles Count:", vehicles.length);
+    console.log("🚘 Matching Vehicles:", vehicles);
+
     const total = await Vehicle.countDocuments(filter);
+    console.log("📊 Total Count:", total);
 
     res.status(200).json({
       success: true,
@@ -188,7 +264,9 @@ exports.getVehiclesByUser = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
+
   } catch (error) {
+    console.log("🔥 ERROR:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -196,7 +274,6 @@ exports.getVehiclesByUser = async (req, res) => {
     });
   }
 };
-
 exports.updateVehicle = async (req, res) => {
   try {
     const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, {
@@ -353,11 +430,7 @@ exports.testApi = async (req, res) => {
   try {
     console.log("🚀 TEST API HIT");
 
-    const payload =
-      typeof req.body.body === "string"
-        ? JSON.parse(req.body.body)
-        : req.body.body;
-
+    const payload = req.body.body;
     console.log("📥 Payload:", payload, typeof req.body.body === "string");
 
     for (const element of payload) {
