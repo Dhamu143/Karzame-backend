@@ -31,7 +31,7 @@ exports.sendRelayCommand = async (req, res) => {
       });
     }
 
-    const token = getToken();
+const token = await getToken();
     if (!token) {
       console.log('❌ Token missing');
       return res.status(401).json({
