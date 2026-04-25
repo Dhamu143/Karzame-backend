@@ -45,6 +45,7 @@ async function generateToken() {
 async function getToken() {
   if (!accessToken) {
     return await generateToken();
+    console.log("No token available, generating new token...");
   }
 
   return accessToken;

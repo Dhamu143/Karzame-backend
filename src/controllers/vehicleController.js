@@ -329,58 +329,59 @@ exports.deleteVehicle = async (req, res) => {
   }
 };
 
-exports.getVehicleLocation = async (req, res) => {
-  try {
-    const { imei } = req.params;
+// exports.getVehicleLocation = async (req, res) => {
+//   try {
+//     const { imei } = req.params;
+//     console.log("TOKEN:", token);
 
-    if (!imei) {
-      return res.status(400).json({
-        success: false,
-        message: "IMEI is required",
-      });
-    }
+//     if (!imei) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "IMEI is required",
+//       });
+//     }
 
-    const token = getToken();
+//     const token = getToken();
 
-    const response = await axios.get(
-      `https://open.iopgps.com/api/device/location?imei=${imei}`,
-      {
-        headers: {
-          accessToken: token,
-          "Content-Type": "application/json",
-        },
-      },
-    );
+//     const response = await axios.get(
+//       `https://open.iopgps.com/api/device/location?imei=${imei}`,
+//       {
+//         headers: {
+//           accessToken: token,
+//           "Content-Type": "application/json",
+//         },
+//       },
+//     );
 
-    const data = response?.data;
+//     const data = response?.data;
 
-    if (!data || data.code !== 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Failed to fetch location",
-        data: data,
-      });
-    }
+//     if (!data || data.code !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Failed to fetch location",
+//         data: data,
+//       });
+//     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Location fetched successfully",
-      data: {
-        latitude: data.lat,
-        longitude: data.lng,
-        gpsTime: data.gpsTime,
-        address: data.address,
-      },
-    });
-  } catch (error) {
-    console.log("GET LOCATION ERROR:", error.message);
+//     return res.status(200).json({
+//       success: true,
+//       message: "Location fetched successfully",
+//       data: {
+//         latitude: data.lat,
+//         longitude: data.lng,
+//         gpsTime: data.gpsTime,
+//         address: data.address,
+//       },
+//     });
+//   } catch (error) {
+//     console.log("GET LOCATION ERROR:", error.message);
 
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
 
 // exports.testApi = async (req, res) => {
 //   try {
@@ -425,6 +426,76 @@ exports.getVehicleLocation = async (req, res) => {
 
 // Don't forget to import your new model at the top of the file!
 // const ParkVehicle = require('../models/ParkVehicle');
+
+exports.getVehicleLocation = async (req, res) => {
+  try {
+    const { imei } = req.params;
+
+    console.log("📥 IMEI:", imei);
+
+    if (!imei) {
+      return res.status(400).json({
+        success: false,
+        message: "IMEI is required",
+      });
+    }
+
+    const token = await getToken(); 
+
+    console.log("🔑 TOKEN:", token);
+
+    const url = `https://open.iopgps.com/api/device/location?imei=${imei}`;
+    console.log("🌍 URL:", url);
+
+    const response = await axios.get(url, {
+      headers: {
+        accessToken: token,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("📡 RAW RESPONSE:", response.data);
+
+    const data = response?.data;
+
+    if (!data || data.code !== 0) {
+      console.log("❌ API FAILED:", data);
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch location",
+        data: data,
+      });
+    }
+
+    console.log("✅ LOCATION DATA:", {
+      lat: data.lat,
+      lng: data.lng,
+      address: data.address,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Location fetched successfully",
+      data: {
+        latitude: data.lat,
+        longitude: data.lng,
+        gpsTime: data.gpsTime,
+        address: data.address,
+      },
+    });
+  } catch (error) {
+    console.log("🔥 GET LOCATION ERROR:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 exports.testApi = async (req, res) => {
   try {

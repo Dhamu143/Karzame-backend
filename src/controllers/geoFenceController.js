@@ -9,7 +9,8 @@ exports.createGeoFence = async (req, res) => {
   console.log('📥 Incoming Body:', req.body);
 
   try {
-    const token = getToken();
+    const token = await getToken();
+
     console.log('🔐 Token:', token);
 
     const { imei, fenceName, radius, lat, lng } = req.body;

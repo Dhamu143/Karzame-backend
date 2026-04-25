@@ -156,7 +156,7 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
       throw new Error('Invalid parameter (allowed: 1,2,3)');
     }
 
-    const token = getToken();
+const token = await getToken();
     if (!token) {
       console.log('❌ Token missing');
       throw new Error('GPS API token missing');
