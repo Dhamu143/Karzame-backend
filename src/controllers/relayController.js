@@ -11,29 +11,51 @@ exports.sendRelayCommand = async (req, res) => {
     const {
       parameter,
       imeis,
+      phone,
       code = 0,
       message = "System relay command"
     } = req.body;
 
+    // ✅ 1. Validate payload
     if (!parameter || !imeis || !Array.isArray(imeis) || imeis.length === 0) {
-      console.log('❌ Invalid payload');
       return res.status(400).json({
         success: false,
-        message: 'Invalid payload. "parameter" and imeis[] required'
+        message: 'Invalid payload'
       });
     }
 
+    // ✅ 2. Validate parameter early
     if (!['1', '2', '3'].includes(String(parameter))) {
-      console.log('❌ Invalid parameter:', parameter);
       return res.status(400).json({
         success: false,
         message: 'Invalid parameter (allowed: 1,2,3)'
       });
     }
 
-const token = await getToken();
+    // ✅ 3. Fetch vehicle
+    const vehicle = await Vehicle.findOne({ imei: imeis[0] });
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    // ✅ 4. Normalize phone (IMPORTANT)
+    const normalize = (num) => String(num).replace(/\D/g, '');
+
+    if (!phone || normalize(vehicle.phone) !== normalize(phone)) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid mobile number",
+      });
+    }
+
+    // ✅ 5. Get token
+    const token = await getToken();
+
     if (!token) {
-      console.log('❌ Token missing');
       return res.status(401).json({
         success: false,
         message: 'GPS API token missing'
@@ -42,41 +64,7 @@ const token = await getToken();
 
     console.log('🔑 Token OK');
 
-    await Vehicle.updateMany(
-      { imei: { $in: imeis } },
-      {
-        $push: {
-          relayLogs: {
-            parameter: String(parameter),
-            message
-          }
-        }
-      }
-    );
-
-    console.log('💾 Relay logs saved for IMEIs:', imeis);
-
-    let engineStatus = null;
-
-    if (String(parameter) === "1") {
-      engineStatus = false; // OFF
-    } else if (String(parameter) === "2") {
-      engineStatus = true; // ON
-    }
-
-    if (engineStatus !== null) {
-      await Vehicle.updateMany(
-        { imei: { $in: imeis } },
-        { engineStatus }
-      );
-
-      console.log(
-        `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
-      );
-    } else {
-      console.log('ℹ️ No engine status change for parameter:', parameter);
-    }
-
+    // ✅ 6. Prepare payload
     const iopgpsPayload = {
       code: Number(code),
       message: String(message),
@@ -86,6 +74,7 @@ const token = await getToken();
 
     console.log('📤 Sending to IOPGPS:', iopgpsPayload);
 
+    // ✅ 7. Call GPS API FIRST
     const response = await axios.post(
       'https://open.iopgps.com/api/instruction/relay',
       iopgpsPayload,
@@ -101,10 +90,39 @@ const token = await getToken();
 
     const isSuccess = response.data.code === 0;
 
+    // ❗ Only update DB if API succeeded
+    if (isSuccess) {
+      await Vehicle.updateMany(
+        { imei: { $in: imeis } },
+        {
+          $push: {
+            relayLogs: {
+              parameter: String(parameter),
+              message
+            }
+          }
+        }
+      );
+
+      let engineStatus = null;
+
+      if (String(parameter) === "1") engineStatus = false;
+      if (String(parameter) === "2") engineStatus = true;
+
+      if (engineStatus !== null) {
+        await Vehicle.updateMany(
+          { imei: { $in: imeis } },
+          { engineStatus }
+        );
+
+        console.log(
+          `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
+        );
+      }
+    }
+
     console.log(
-      isSuccess
-        ? '🎉 Command Success'
-        : '⚠️ Command Failed'
+      isSuccess ? '🎉 Command Success' : '⚠️ Command Failed'
     );
 
     console.log('==============================\n');
@@ -156,7 +174,7 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
       throw new Error('Invalid parameter (allowed: 1,2,3)');
     }
 
-const token = await getToken();
+    const token = await getToken();
     if (!token) {
       console.log('❌ Token missing');
       throw new Error('GPS API token missing');
