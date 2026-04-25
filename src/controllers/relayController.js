@@ -4,10 +4,10 @@ const Vehicle = require('../models/Vehicle');
 
 exports.sendRelayCommand = async (req, res) => {
   try {
-    console.log('\n==============================');
     console.log('🚀 START sendRelayCommand');
     console.log('📥 Incoming Request Body:', req.body);
 
+    const token = await getToken();
     const {
       parameter,
       imeis,
@@ -16,7 +16,6 @@ exports.sendRelayCommand = async (req, res) => {
       message = "System relay command"
     } = req.body;
 
-    // ✅ 1. Validate payload
     if (!parameter || !imeis || !Array.isArray(imeis) || imeis.length === 0) {
       return res.status(400).json({
         success: false,
@@ -24,7 +23,6 @@ exports.sendRelayCommand = async (req, res) => {
       });
     }
 
-    // ✅ 2. Validate parameter early
     if (!['1', '2', '3'].includes(String(parameter))) {
       return res.status(400).json({
         success: false,
@@ -32,7 +30,6 @@ exports.sendRelayCommand = async (req, res) => {
       });
     }
 
-    // ✅ 3. Fetch vehicle
     const vehicle = await Vehicle.findOne({ imei: imeis[0] });
 
     if (!vehicle) {
@@ -42,18 +39,22 @@ exports.sendRelayCommand = async (req, res) => {
       });
     }
 
-    // ✅ 4. Normalize phone (IMPORTANT)
     const normalize = (num) => String(num).replace(/\D/g, '');
+    const last4 = (num) => normalize(num).slice(-4);
 
-    if (!phone || normalize(vehicle.phone) !== normalize(phone)) {
+    if (!phone || phone.replace(/\D/g, '').length !== 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter last 4 digits of your mobile number",
+      });
+    }
+
+    if (last4(vehicle.phone) !== last4(phone)) {
       return res.status(403).json({
         success: false,
         message: "Invalid mobile number",
       });
     }
-
-    // ✅ 5. Get token
-    const token = await getToken();
 
     if (!token) {
       return res.status(401).json({
@@ -64,7 +65,6 @@ exports.sendRelayCommand = async (req, res) => {
 
     console.log('🔑 Token OK');
 
-    // ✅ 6. Prepare payload
     const iopgpsPayload = {
       code: Number(code),
       message: String(message),
@@ -74,7 +74,6 @@ exports.sendRelayCommand = async (req, res) => {
 
     console.log('📤 Sending to IOPGPS:', iopgpsPayload);
 
-    // ✅ 7. Call GPS API FIRST
     const response = await axios.post(
       'https://open.iopgps.com/api/instruction/relay',
       iopgpsPayload,
@@ -90,7 +89,6 @@ exports.sendRelayCommand = async (req, res) => {
 
     const isSuccess = response.data.code === 0;
 
-    // ❗ Only update DB if API succeeded
     if (isSuccess) {
       await Vehicle.updateMany(
         { imei: { $in: imeis } },
@@ -121,10 +119,7 @@ exports.sendRelayCommand = async (req, res) => {
       }
     }
 
-    console.log(
-      isSuccess ? '🎉 Command Success' : '⚠️ Command Failed'
-    );
-
+    console.log(isSuccess ? '🎉 Command Success' : '⚠️ Command Failed');
     console.log('==============================\n');
 
     return res.status(200).json({
@@ -158,6 +153,7 @@ exports.sendRelayCommand = async (req, res) => {
     });
   }
 };
+
 
 exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay command") => {
   try {
@@ -199,9 +195,9 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
     let engineStatus = null;
 
     if (String(parameter) === "1") {
-      engineStatus = false; // OFF
+      engineStatus = false;
     } else if (String(parameter) === "2") {
-      engineStatus = true; // ON
+      engineStatus = true;
     }
 
     if (engineStatus !== null) {
@@ -241,11 +237,7 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
 
     const isSuccess = response.data.code === 0;
 
-    console.log(
-      isSuccess
-        ? '🎉 Command Success'
-        : '⚠️ Command Failed'
-    );
+    console.log(isSuccess ? '🎉 Command Success' : '⚠️ Command Failed');
 
     return {
       success: isSuccess,
