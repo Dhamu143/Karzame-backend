@@ -239,7 +239,6 @@ exports.getVehiclesByUser = async (req, res) => {
 
     console.log("🔎 Final Filter:", filter);
 
-    // 👉 Check what exists in DB
     const allVehicles = await Vehicle.find({});
     console.log(
       "📦 All Vehicles in DB:",

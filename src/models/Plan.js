@@ -31,6 +31,10 @@ const planSchema = new mongoose.Schema(
             enum: ['Standard', 'Premium'],
             required: true,
         },
+        isRecommended: {
+            type: Boolean,
+            default: false,
+        },
         price: {
             type: Number,
             required: true,
