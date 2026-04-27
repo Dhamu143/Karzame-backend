@@ -125,58 +125,22 @@ exports.getVehicles = async (req, res) => {
   }
 };
 
-exports.getVehiclesByUser = async (req, res) => {
+exports.getVehicleById = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const vehicle = await Vehicle.findById(req.params.id);
 
-    const { status, movementStatus, stolen } = req.query;
-
-    let filter = {
-      userId: req.params.userId, // Keep it as string, or use mongoose.Types.ObjectId(req.params.userId) if needed in aggregate
-    };
-
-    if (status) filter.status = status;
-    if (movementStatus) filter.movementStatus = movementStatus;
-    if (stolen !== undefined && stolen !== "") filter.stolen = stolen === "true";
-
-    // Use aggregation to include the GeoFence object exactly as the UI expects
-    const vehicles = await Vehicle.aggregate([
-      { $match: filter },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: "geofences", 
-          localField: "imei",
-          foreignField: "imei",
-          as: "geofenceData",
-        },
-      },
-      {
-        $addFields: {
-          geofence: { $arrayElemAt: ["$geofenceData", 0] },
-        },
-      },
-      {
-        $project: { geofenceData: 0 }
-      }
-    ]);
-
-    const total = await Vehicle.countDocuments(filter);
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+        data: null,
+      });
+    }
 
     res.status(200).json({
       success: true,
-      message: "User vehicles fetched successfully",
-      data: vehicles,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      message: "Vehicle fetched successfully",
+      data: vehicle,
     });
   } catch (error) {
     res.status(500).json({
