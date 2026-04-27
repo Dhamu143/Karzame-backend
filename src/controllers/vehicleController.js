@@ -72,23 +72,16 @@ exports.getVehicles = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    console.log("Query Params:", req.query);
+ 
     const { status, movementStatus, stolen, search } = req.query;
-
+ 
     let filter = {};
-
-    if (status) {
-      filter.status = status;
-    }
-
-    if (movementStatus) {
-      filter.movementStatus = movementStatus;
-    }
-
+ 
+    if (status) filter.status = status;
+    if (movementStatus) filter.movementStatus = movementStatus;
     if (stolen !== undefined && stolen !== "") {
       filter.stolen = stolen === "true";
     }
-
     if (search) {
       filter.$or = [
         { phone: { $regex: search, $options: "i" } },
@@ -96,18 +89,26 @@ exports.getVehicles = async (req, res) => {
         { ownerName: { $regex: search, $options: "i" } },
       ];
     }
-
+ 
     const vehicles = await Vehicle.find(filter)
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
-
+ 
     const total = await Vehicle.countDocuments(filter);
-
+ 
+    // ✅ Attach geofence data to each vehicle
+    const vehiclesWithFence = await Promise.all(
+      vehicles.map(async (v) => {
+        const fence = await GeoFence.findOne({ imei: v.imei }).lean();
+        return { ...v.toObject(), geofence: fence || null };
+      })
+    );
+ 
     res.status(200).json({
       success: true,
       message: "Vehicles fetched successfully",
-      data: vehicles,
+      data: vehiclesWithFence,
       pagination: {
         total,
         page,
@@ -115,7 +116,6 @@ exports.getVehicles = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-    console.log("Fetched Vehicles:", vehicles);
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -124,25 +124,72 @@ exports.getVehicles = async (req, res) => {
     });
   }
 };
+ 
 
-exports.getVehicleById = async (req, res) => {
+
+exports.getVehiclesByUser = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id);
-
-    if (!vehicle) {
-      return res.status(404).json({
-        success: false,
-        message: "Vehicle not found",
-        data: null,
-      });
+    console.log("👉 HIT /vehicles/user API");
+ 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+ 
+    console.log("📥 Params:", req.params);
+    console.log("📥 Query:", req.query);
+ 
+    const { status, movementStatus, stolen } = req.query;
+ 
+    let filter = {
+      userId: req.params.userId,
+    };
+ 
+    if (status) filter.status = status;
+    if (movementStatus) filter.movementStatus = movementStatus;
+    if (stolen !== undefined && stolen !== "") {
+      filter.stolen = stolen === "true";
     }
-
+ 
+    console.log("🔎 Final Filter:", filter);
+ 
+    const vehicles = await Vehicle.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+ 
+    console.log("🚘 Matching Vehicles Count:", vehicles.length);
+ 
+    const total = await Vehicle.countDocuments(filter);
+ 
+    // ✅ Attach geofence data to each vehicle
+    const vehiclesWithFence = await Promise.all(
+      vehicles.map(async (v) => {
+        const fence = await GeoFence.findOne({ imei: v.imei }).lean();
+        return { ...v.toObject(), geofence: fence || null };
+      })
+    );
+ 
+    console.log(
+      "✅ Vehicles with fence sample:",
+      vehiclesWithFence.map((v) => ({
+        imei: v.imei,
+        geofence: v.geofence,
+      }))
+    );
+ 
     res.status(200).json({
       success: true,
-      message: "Vehicle fetched successfully",
-      data: vehicle,
+      message: "User vehicles fetched successfully",
+      data: vehiclesWithFence,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
+    console.log("🔥 ERROR:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -150,6 +197,7 @@ exports.getVehicleById = async (req, res) => {
     });
   }
 };
+ 
 
 // exports.getVehiclesByUser = async (req, res) => {
 //   try {
@@ -206,79 +254,7 @@ exports.getVehicleById = async (req, res) => {
 //   }
 // };
 
-exports.getVehiclesByUser = async (req, res) => {
-  try {
-    console.log("👉 HIT /vehicles/user API");
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    console.log("📥 Params:", req.params);
-    console.log("📥 Query:", req.query);
-
-    const { status, movementStatus, stolen } = req.query;
-
-    let filter = {
-      userId: req.params.userId,
-    };
-
-    console.log("🔎 Initial Filter:", filter);
-
-    if (status) {
-      filter.status = status;
-    }
-
-    if (movementStatus) {
-      filter.movementStatus = movementStatus;
-    }
-
-    if (stolen !== undefined && stolen !== "") {
-      filter.stolen = stolen === "true";
-    }
-
-    console.log("🔎 Final Filter:", filter);
-
-    const allVehicles = await Vehicle.find({});
-    console.log(
-      "📦 All Vehicles in DB:",
-      allVehicles.map((v) => ({
-        _id: v._id,
-        userId: v.userId,
-      })),
-    );
-
-    const vehicles = await Vehicle.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    console.log("🚘 Matching Vehicles Count:", vehicles.length);
-    console.log("🚘 Matching Vehicles:", vehicles);
-
-    const total = await Vehicle.countDocuments(filter);
-    console.log("📊 Total Count:", total);
-
-    res.status(200).json({
-      success: true,
-      message: "User vehicles fetched successfully",
-      data: vehicles,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.log("🔥 ERROR:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      data: null,
-    });
-  }
-};
 exports.updateVehicle = async (req, res) => {
   try {
     const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, {
@@ -432,37 +408,108 @@ exports.deleteVehicle = async (req, res) => {
 // Don't forget to import your new model at the top of the file!
 // const ParkVehicle = require('../models/ParkVehicle');
 
+// exports.getVehicleLocation = async (req, res) => {
+//   try {
+//     const { imei } = req.params;
+
+//     console.log("📥 IMEI:", imei);
+
+//     if (!imei) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "IMEI is required",
+//       });
+//     }
+
+//     const token = await getToken(); 
+
+//     console.log("🔑 TOKEN:", token);
+
+//     const url = `https://open.iopgps.com/api/device/location?imei=${imei}`;
+//     console.log("🌍 URL:", url);
+
+//     const response = await axios.get(url, {
+//       headers: {
+//         accessToken: token,
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     console.log("📡 RAW RESPONSE:", response.data);
+
+//     const data = response?.data;
+
+//     if (!data || data.code !== 0) {
+//       console.log("❌ API FAILED:", data);
+//       return res.status(400).json({
+//         success: false,
+//         message: "Failed to fetch location",
+//         data: data,
+//       });
+//     }
+
+//     console.log("✅ LOCATION DATA:", {
+//       lat: data.lat,
+//       lng: data.lng,
+//       address: data.address,
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Location fetched successfully",
+//       data: {
+//         latitude: data.lat,
+//         longitude: data.lng,
+//         gpsTime: data.gpsTime,
+//         address: data.address,
+//       },
+//     });
+//   } catch (error) {
+//     console.log("🔥 GET LOCATION ERROR:", {
+//       message: error.message,
+//       status: error.response?.status,
+//       data: error.response?.data,
+//     });
+
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
 exports.getVehicleLocation = async (req, res) => {
   try {
     const { imei } = req.params;
-
+ 
     console.log("📥 IMEI:", imei);
-
+ 
     if (!imei) {
       return res.status(400).json({
         success: false,
         message: "IMEI is required",
       });
     }
-
-    const token = await getToken(); 
-
+ 
+    const token = await getToken();
+ 
     console.log("🔑 TOKEN:", token);
-
+ 
     const url = `https://open.iopgps.com/api/device/location?imei=${imei}`;
     console.log("🌍 URL:", url);
-
+ 
     const response = await axios.get(url, {
       headers: {
         accessToken: token,
         "Content-Type": "application/json",
       },
     });
-
+ 
     console.log("📡 RAW RESPONSE:", response.data);
-
+ 
     const data = response?.data;
-
+ 
     if (!data || data.code !== 0) {
       console.log("❌ API FAILED:", data);
       return res.status(400).json({
@@ -471,13 +518,13 @@ exports.getVehicleLocation = async (req, res) => {
         data: data,
       });
     }
-
+ 
     console.log("✅ LOCATION DATA:", {
       lat: data.lat,
       lng: data.lng,
       address: data.address,
     });
-
+ 
     return res.status(200).json({
       success: true,
       message: "Location fetched successfully",
@@ -494,14 +541,14 @@ exports.getVehicleLocation = async (req, res) => {
       status: error.response?.status,
       data: error.response?.data,
     });
-
+ 
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
+ 
 exports.testApi = async (req, res) => {
   try {
     console.log("🚀 TEST API HIT");
