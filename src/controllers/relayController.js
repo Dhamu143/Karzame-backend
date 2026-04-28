@@ -104,8 +104,8 @@ exports.sendRelayCommand = async (req, res) => {
 
       let engineStatus = null;
 
-      if (String(parameter) === "1") engineStatus = false;
-      if (String(parameter) === "2") engineStatus = true;
+      if (String(parameter) === "1") engineStatus = true;
+      if (String(parameter) === "2") engineStatus = false;
 
       if (engineStatus !== null) {
         await Vehicle.updateMany(
@@ -195,9 +195,9 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
     let engineStatus = null;
 
     if (String(parameter) === "1") {
-      engineStatus = false;
-    } else if (String(parameter) === "2") {
       engineStatus = true;
+    } else if (String(parameter) === "2") {
+      engineStatus = false;
     }
 
     if (engineStatus !== null) {
