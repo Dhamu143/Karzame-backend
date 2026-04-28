@@ -132,7 +132,7 @@ const GeoFence = require("../models/GeoFence");
 const moment = require("moment");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
-
+const { createNotification } = require("../controllers/notification");
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
   const vehicles = await Vehicle.find({});
@@ -208,7 +208,7 @@ const checkAutoPark = async () => {
             };
 
             await karzame(response);
-
+            createNotification(payload);
           } catch (err) {
             await NotificationLog.create({
               ...payload,
@@ -274,33 +274,34 @@ const noLongerParked = async () => {
         };
 
         // await karzame(payload);
-            try {
-            console.log("📤 Sending Notification (AUTO_PARK_SUGGESTION):", payload);
+        try {
+          console.log("📤 Sending Notification (AUTO_PARK_SUGGESTION):", payload);
 
-            const savedNotification = await NotificationLog.create({
-              ...payload,
-              status: "SENT",
-              alertStatus: "Pending"
-            });
+          const savedNotification = await NotificationLog.create({
+            ...payload,
+            status: "SENT",
+            alertStatus: "Pending"
+          });
 
-            console.log("📥 Notification stored:", savedNotification._id);
+          console.log("📥 Notification stored:", savedNotification._id);
 
-            const response = {
-              ...payload,
-              notificationId: savedNotification._id,
-            };
+          const response = {
+            ...payload,
+            notificationId: savedNotification._id,
+          };
 
-            await karzame(response);
+          await karzame(response);
+          createNotification(payload);
 
-          } catch (err) {
-            await NotificationLog.create({
-              ...payload,
-              status: "FAILED",
-              error: err.message,
-            });
+        } catch (err) {
+          await NotificationLog.create({
+            ...payload,
+            status: "FAILED",
+            error: err.message,
+          });
 
-            console.log("❌ Notification failed & stored");
-          }
+          console.log("❌ Notification failed & stored");
+        }
       }
     }
   } catch (error) {

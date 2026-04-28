@@ -164,7 +164,7 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
       console.log('❌ Invalid payload');
       throw new Error('Invalid payload. "parameter" and imeis[] required');
     }
-
+    
     if (!['1', '2', '3'].includes(String(parameter))) {
       console.log('❌ Invalid parameter:', parameter);
       throw new Error('Invalid parameter (allowed: 1,2,3)');

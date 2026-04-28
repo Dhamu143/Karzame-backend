@@ -3,9 +3,9 @@ const Vehicle = require("../models/Vehicle");
 const { getToken } = require("../services/gpsTokenManager");
 const { registerVehicle, checkDevice } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
-const NotificationLog = require("../models/NotificationLog");
 const GeoFence = require("../models/GeoFence");
 const { sendRelay } = require("./relayController");
+const { createNotification } = require("./notification");
 
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
@@ -535,6 +535,21 @@ exports.testApi = async (req, res) => {
         });
         console.log("⚠️ Device removed alert sent");
         console.log("🔧 Attempting to stop engine for IMEI:", element.imei);
+        createNotification({
+          userId: vehicle.userId,
+          vehicleId: vehicle._id,
+          imei: vehicle.imei,
+          title: "Vehicle Stolen Alert",
+          message: "Your vehicle has been marked as stolen due to device removal.",
+          alertType: "DEVICE_REMOVED",
+          alarmCode: element.alarmCode,
+          location: {
+            lat: element.lat,
+            lng: element.lng,
+            address: element.address || "",
+          },
+          speed: speed,
+        });
         try {
           console.log("🔑 Fetching GPS token...");
           await sendRelay(
@@ -543,8 +558,10 @@ exports.testApi = async (req, res) => {
             0,
             "Engine stop due to device removal",
           );
+
           console.log("🔧 Engine stopped for IMEI:", element.imei);
         } catch (error) {
+          
           console.error("❌ Failed to stop engine:", error.message);
         }
       }
@@ -558,7 +575,21 @@ exports.testApi = async (req, res) => {
           alertType: "POWER_CUT",
           notificationBody: "SOS Alert",
         });
-
+createNotification({
+          userId: vehicle.userId,
+          vehicleId: vehicle._id,
+          imei: vehicle.imei,
+          title: "SOS Alert",
+          message: "Your vehicle has triggered an SOS alert.",
+          alertType: "POWER_CUT",
+          alarmCode: element.alarmCode,
+          location: {
+            lat: element.lat,
+            lng: element.lng,
+            address: element.address || "",
+          },
+          speed: speed,
+        }); 
         console.log("⚠️ Device removed alert sent");
       }
       // if (element.alarmCode === "FENCEOUT") {
@@ -575,7 +606,7 @@ exports.testApi = async (req, res) => {
       // }
 
       if (element.alarmCode === "REMOVECONTINUOUSLY") {
-        // await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
+        await Vehicle.findByIdAndUpdate(vehicle._id, { stolen: true });
 
         await karzame({
           ...vehicle.toObject(),
@@ -583,7 +614,21 @@ exports.testApi = async (req, res) => {
           alertType: "REMOVECONTINUOUSLY",
           notificationBody: "Vehicle Remove Continuously Alert",
         });
-
+createNotification({
+          userId: vehicle.userId,
+          vehicleId: vehicle._id,
+          imei: vehicle.imei,
+          title: "Device Removal Alert",
+          message: "Your vehicle's device has been removed multiple times.",
+          alertType: "REMOVECONTINUOUSLY",
+          alarmCode: element.alarmCode,
+          location: {
+            lat: element.lat,
+            lng: element.lng,
+            address: element.address || "",
+          },
+          speed: speed,
+        });
         console.log("⚠️ Device removed alert sent");
       }
       const fence = await GeoFence.findOne({ imei: vehicle.imei });
@@ -604,6 +649,21 @@ exports.testApi = async (req, res) => {
           notificationBody: "Vehicle Fence Out Alert",
         });
 
+        createNotification({
+          userId: vehicle.userId,
+          vehicleId: vehicle._id,
+          imei: vehicle.imei,
+          title: "Fence Out Alert",
+          message: "Your vehicle has exited the geo-fence area.",
+          alertType: "FENCEOUT",
+          alarmCode: element.alarmCode,
+          location: {
+            lat: element.lat,
+            lng: element.lng,
+            address: element.address || "",
+          },
+          speed: speed,
+        });
         console.log("⚠️ Fence out alert sent");
       }
       // if (speed > 0 && vehicle.prkkey === true) {
