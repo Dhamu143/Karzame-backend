@@ -3,10 +3,8 @@ const mongoose = require("mongoose");
 const notificationSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
-      index: true,
     },
 
     vehicleId: {
@@ -46,7 +44,7 @@ const notificationSchema = new mongoose.Schema(
     },
 
     alarmCode: {
-      type: String, // raw GPS alarmCode
+      type: String, 
     },
 
     isRead: {

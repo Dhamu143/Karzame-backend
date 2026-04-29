@@ -2,12 +2,35 @@ const axios = require('axios');
 const { getToken } = require('../services/gpsTokenManager');
 const Vehicle = require('../models/Vehicle');
 
+const updateEngineStatus = async (imeis, parameter) => {
+  let engineStatus = null;
+
+  if (String(parameter) === "1") engineStatus = true;
+  if (String(parameter) === "2") engineStatus = false;
+  
+  console.log('🔧 Updating Engine Status for IMEIs:', imeis, 'to', engineStatus);
+
+  if (engineStatus !== null) {
+    await Vehicle.updateMany(
+      { imei: { $in: imeis } },
+      { $set: { engineStatus } }
+    );
+
+    console.log(
+      `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
+    );
+  } else {
+    console.log('ℹ️ No engine status change for parameter:', parameter);
+  }
+};
+
 exports.sendRelayCommand = async (req, res) => {
   try {
     console.log('🚀 START sendRelayCommand');
     console.log('📥 Incoming Request Body:', req.body);
 
     const token = await getToken();
+
     const {
       parameter,
       imeis,
@@ -65,18 +88,18 @@ exports.sendRelayCommand = async (req, res) => {
 
     console.log('🔑 Token OK');
 
-    const iopgpsPayload = {
+    const payload = {
       code: Number(code),
       message: String(message),
       parameter: String(parameter),
       imeis
     };
 
-    console.log('📤 Sending to IOPGPS:', iopgpsPayload);
+    console.log('📤 Sending to IOPGPS:', payload);
 
     const response = await axios.post(
       'https://open.iopgps.com/api/instruction/relay',
-      iopgpsPayload,
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -90,33 +113,7 @@ exports.sendRelayCommand = async (req, res) => {
     const isSuccess = response.data.code === 0;
 
     if (isSuccess) {
-      await Vehicle.updateMany(
-        { imei: { $in: imeis } },
-        {
-          $push: {
-            relayLogs: {
-              parameter: String(parameter),
-              message
-            }
-          }
-        }
-      );
-
-      let engineStatus = null;
-
-      if (String(parameter) === "1") engineStatus = true;
-      if (String(parameter) === "2") engineStatus = false;
-
-      if (engineStatus !== null) {
-        await Vehicle.updateMany(
-          { imei: { $in: imeis } },
-          { engineStatus }
-        );
-
-        console.log(
-          `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
-        );
-      }
+      await updateEngineStatus(imeis, parameter);
     }
 
     console.log(isSuccess ? '🎉 Command Success' : '⚠️ Command Failed');
@@ -155,76 +152,45 @@ exports.sendRelayCommand = async (req, res) => {
 };
 
 
-exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay command") => {
+exports.sendRelay = async (
+  parameter,
+  imeis,
+  code = 0,
+  message = "System relay command"
+) => {
   try {
     console.log('🚀 START sendRelay');
     console.log('📥 Parameters:', { parameter, imeis, code, message });
 
     if (!parameter || !imeis || !Array.isArray(imeis) || imeis.length === 0) {
-      console.log('❌ Invalid payload');
       throw new Error('Invalid payload. "parameter" and imeis[] required');
     }
-    
+
     if (!['1', '2', '3'].includes(String(parameter))) {
-      console.log('❌ Invalid parameter:', parameter);
       throw new Error('Invalid parameter (allowed: 1,2,3)');
     }
 
     const token = await getToken();
+
     if (!token) {
-      console.log('❌ Token missing');
       throw new Error('GPS API token missing');
     }
 
     console.log('🔑 Token OK');
 
-    await Vehicle.updateMany(
-      { imei: { $in: imeis } },
-      {
-        $push: {
-          relayLogs: {
-            parameter: String(parameter),
-            message
-          }
-        }
-      }
-    );
-
-    console.log('💾 Relay logs saved for IMEIs:', imeis);
-
-    let engineStatus = null;
-
-    if (String(parameter) === "1") {
-      engineStatus = true;
-    } else if (String(parameter) === "2") {
-      engineStatus = false;
-    }
-
-    if (engineStatus !== null) {
-      await Vehicle.updateMany(
-        { imei: { $in: imeis } },
-        { engineStatus }
-      );
-
-      console.log(
-        `🔧 Engine Status Updated → ${engineStatus ? "ON" : "OFF"}`
-      );
-    } else {
-      console.log('ℹ️ No engine status change for parameter:', parameter);
-    }
-
-    const iopgpsPayload = {
+    const payload = {
       code: Number(code),
       message: String(message),
       parameter: String(parameter),
       imeis
     };
 
-    console.log('📤 Sending to IOPGPS:', iopgpsPayload);
+    console.log('📤 Sending to IOPGPS:', payload);
 
+    // ✅ API call
     const response = await axios.post(
       'https://open.iopgps.com/api/instruction/relay',
-      iopgpsPayload,
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -236,6 +202,10 @@ exports.sendRelay = async (parameter, imeis, code = 0, message = "System relay c
     console.log('✅ IOPGPS Response:', response.data);
 
     const isSuccess = response.data.code === 0;
+
+    if (isSuccess) {
+      await updateEngineStatus(imeis, parameter);
+    }
 
     console.log(isSuccess ? '🎉 Command Success' : '⚠️ Command Failed');
 

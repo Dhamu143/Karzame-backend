@@ -445,7 +445,7 @@ exports.getVehicleLocation = async (req, res) => {
       });
     }
 
-    const token = await getToken(); 
+    const token = await getToken();
 
     console.log("🔑 TOKEN:", token);
 
@@ -561,7 +561,7 @@ exports.testApi = async (req, res) => {
 
           console.log("🔧 Engine stopped for IMEI:", element.imei);
         } catch (error) {
-          
+
           console.error("❌ Failed to stop engine:", error.message);
         }
       }
@@ -575,7 +575,7 @@ exports.testApi = async (req, res) => {
           alertType: "POWER_CUT",
           notificationBody: "SOS Alert",
         });
-createNotification({
+        createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,
@@ -589,7 +589,7 @@ createNotification({
             address: element.address || "",
           },
           speed: speed,
-        }); 
+        });
         console.log("⚠️ Device removed alert sent");
       }
       // if (element.alarmCode === "FENCEOUT") {
@@ -614,7 +614,7 @@ createNotification({
           alertType: "REMOVECONTINUOUSLY",
           notificationBody: "Vehicle Remove Continuously Alert",
         });
-createNotification({
+        createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,

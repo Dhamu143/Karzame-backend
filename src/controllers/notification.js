@@ -1,6 +1,5 @@
 const Notification = require("../models/Notification");
 
-// ✅ Create Notification (used inside testApi)
 exports.createNotification = async (data) => {
   try {
     const notification = new Notification({

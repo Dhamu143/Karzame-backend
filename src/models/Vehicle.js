@@ -165,6 +165,51 @@ const vehicleSchema = new mongoose.Schema(
         },
       },
     ],
+     autoSecureWhenParked: {
+      type: Boolean,
+      default: false,
+    },
+
+    geoFenceBreachProtection: {
+      type: Boolean,
+      default: false,
+    },
+
+    autoEngineCutOffGeo: {
+      type: Boolean,
+      default: false,
+    },
+
+    notifyOnGeoFenceBreach: {
+      type: Boolean,
+      default: false,
+    },
+
+    trackerDisconnectionProtection: {
+      type: Boolean,
+      default: false,
+    },
+
+    autoEngineCutOffOnTrackerDisconnect: {
+      type: Boolean,
+      default: false,
+    },
+
+    notifyOnTrackerDisconnect: {
+      type: Boolean,
+      default: false,
+    },
+
+
+    ignitionOffEnabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    ignitionOnEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
