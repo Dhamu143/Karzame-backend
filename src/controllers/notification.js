@@ -2,6 +2,8 @@ const Notification = require("../models/Notification");
 
 exports.createNotification = async (data) => {
   try {
+    const location = data.location || {};
+
     const notification = new Notification({
       userId: data.userId,
       vehicleId: data.vehicleId,
@@ -11,9 +13,9 @@ exports.createNotification = async (data) => {
       alertType: data.alertType,
       alarmCode: data.alarmCode,
       location: {
-        lat: data.lat,
-        lng: data.lng,
-        address: data.address || "",
+        lat: data.lat ?? location.lat,
+        lng: data.lng ?? location.lng,
+        address: data.address ?? location.address ?? "",
       },
       speed: data.speed || 0,
       extraData: data.extraData || {},
@@ -81,7 +83,7 @@ exports.deleteNotification = async (req, res) => {
 exports.getallNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find().sort({ createdAt: -1 });
-
+    console.log("🔍 Retrieved Notifications:", notifications.length);
     res.status(200).json({
       success: true,
       data: notifications,
