@@ -5,7 +5,7 @@ const { registerVehicle, checkDevice } = require("../services/iopgpsService");
 const karzame = require("../services/karzame");
 const GeoFence = require("../models/GeoFence");
 const { sendRelay } = require("./relayController");
-const { createNotification } = require("./notification");
+const { createNotification } = require("./notificationController");
 
 exports.createVehicle = async (req, res) => {
   //	console.log('Start')
@@ -535,7 +535,7 @@ exports.testApi = async (req, res) => {
         });
         console.log("⚠️ Device removed alert sent");
         console.log("🔧 Attempting to stop engine for IMEI:", element.imei);
-        createNotification({
+        await createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,
@@ -550,6 +550,7 @@ exports.testApi = async (req, res) => {
           },
           speed: speed,
         });
+        
         try {
           console.log("🔑 Fetching GPS token...");
           await sendRelay(
@@ -575,7 +576,7 @@ exports.testApi = async (req, res) => {
           alertType: "POWER_CUT",
           notificationBody: "SOS Alert",
         });
-        createNotification({
+        await createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,
@@ -614,7 +615,7 @@ exports.testApi = async (req, res) => {
           alertType: "REMOVECONTINUOUSLY",
           notificationBody: "Vehicle Remove Continuously Alert",
         });
-        createNotification({
+        await createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,
@@ -649,7 +650,7 @@ exports.testApi = async (req, res) => {
           notificationBody: "Vehicle Fence Out Alert",
         });
 
-        createNotification({
+        await createNotification({
           userId: vehicle.userId,
           vehicleId: vehicle._id,
           imei: vehicle.imei,

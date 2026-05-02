@@ -132,7 +132,6 @@ const GeoFence = require("../models/GeoFence");
 const moment = require("moment");
 const karzame = require("../services/karzame");
 const NotificationLog = require("../models/NotificationLog");
-const { createNotification } = require("../controllers/notification");
 cron.schedule("* * * * *", async () => {
   console.log("⏱️ Running Park Cron...");
   const vehicles = await Vehicle.find({});
@@ -208,7 +207,6 @@ const checkAutoPark = async () => {
             };
 
             await karzame(response);
-            createNotification(payload);
           } catch (err) {
             await NotificationLog.create({
               ...payload,
@@ -291,7 +289,6 @@ const noLongerParked = async () => {
           };
 
           await karzame(response);
-          createNotification(payload);
 
         } catch (err) {
           await NotificationLog.create({

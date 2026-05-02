@@ -7,9 +7,13 @@ const timelineEventSchema = new mongoose.Schema(
       required: true,
    
     },
+    description: {
+      type: String,
+      default: "",
+    },
     performedBy: {
       type: String,
-      enum: [ "Owner", "Admin"],
+      enum: ["System", "Owner", "Admin"],
     },
     performedById: {
       type: String,
