@@ -117,6 +117,7 @@ const vehicleSchema = new mongoose.Schema(
     },
     lat: String,
     lng: String,
+
     alerts: {
       type: Number,
       default: 0,
@@ -165,6 +166,7 @@ const vehicleSchema = new mongoose.Schema(
         },
       },
     ],
+    
      autoSecureWhenParked: {
       type: Boolean,
       default: false,

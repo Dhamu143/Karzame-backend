@@ -752,6 +752,7 @@ exports.testApi = async (req, res) => {
             vehicleStartTime: new Date(),
             prktime: null,
             lat: element.lat,
+            movementStatus: "parked",
             lng: element.lng,
             alarmCode: element.alarmCode,
           });
@@ -771,6 +772,7 @@ exports.testApi = async (req, res) => {
           await Vehicle.findByIdAndUpdate(vehicle._id, {
             speed: element.speed,
             prkkey: true,
+            movementStatus: "moving",
             prktime: new Date(),
             vehicleStartTime: null,
             lat: element.lat,
